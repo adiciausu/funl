@@ -11,4 +11,4 @@ rel/example_project
 
 .idea/
 funl.iml
-src/
+out/
