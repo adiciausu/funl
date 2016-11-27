@@ -10,5 +10,7 @@ rel/example_project
 .rebar
 
 .idea/
-funl.iml
+_build/
 out/
+rebar.lock
+funl.iml
