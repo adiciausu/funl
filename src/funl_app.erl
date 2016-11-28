@@ -1,5 +1,5 @@
 %% @private
--module(app).
+-module(funl_app).
 -behaviour(application).
 
 %% API.
@@ -11,13 +11,13 @@
 start(_Type, _Args) ->
   Dispatch = cowboy_router:compile([
     {'_', [
-      {"/", toppage_handler, []}
+      {"/", handler, []}
     ]}
   ]),
-  {ok, _} = cowboy:start_clear(http, 100, [{port, 8080}], #{
-    env => #{dispatch => Dispatch}
-  }),
-  sup:start_link().
+  {ok, _} = cowboy:start_http(http, 100, [{port, 8080}], [
+    {env, [{dispatch, Dispatch}]}
+  ]),
+  funl_sup:start_link().
 
 stop(_State) ->
   ok.

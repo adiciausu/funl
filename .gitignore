@@ -1,3 +1,4 @@
+#erlang
 .eunit
 deps
 *.o
@@ -5,12 +6,19 @@ deps
 *.plt
 erl_crash.dump
 ebin
-rel/example_project
 .concrete/DEV_MODE
+
+#rebar
+_build/
+rebar.lock
 .rebar
 
-.idea/
-_build/
+
+#build
 out/
-rebar.lock
+
+
+#intellijideea
+.idea/
 funl.iml
+
