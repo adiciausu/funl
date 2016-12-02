@@ -9,7 +9,7 @@
 %% API.
 
 start(_Type, _Args) ->
-  funl_sender:start(),
+  funl_queue_consumer:start(),
   start_http_listener().
 
 start_http_listener() ->
