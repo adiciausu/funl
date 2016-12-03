@@ -1,9 +1,12 @@
 -module(funl_retry_client).
 -include("funl_request.hrl").
 -include("funl_options.hrl").
--export([send/2]).
+-export([send/2, send/3]).
 
-send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint} = Options) ->
+send(Req, #options{endpoint = Endpoint} = Options) ->
+  send(Req, Options, Endpoint).
+
+send(#request{wrappedRequest = WrappedReq} = Req, Options, Endpoint) ->
   erlang:display(Endpoint),
   Method = list_to_atom(string:to_lower(binary_to_list(cowboy_req:method(WrappedReq)))),
   Headers = cowboy_req:headers(WrappedReq),
@@ -14,35 +17,32 @@ send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint} 
     _:Error -> handle_response({error, caught, Error}, Req, Options)
   end.
 
-handle_response({ok, "200", _Head, _Body}, FunlRequest, _Options) ->
-  WrappedRequest = FunlRequest#request.wrappedRequest,
+handle_response({ok, "200", _Head, _Body}, Req, _Options) ->
+  WrappedRequest = Req#request.wrappedRequest,
   io:format("[Done] (~s)~s ~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest)]),
-  NewRequest = FunlRequest#request{state = done, errCount = 0},
-  {done, NewRequest};
+  {done, Req#request{state = done}};
+
+handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
+  NewReq = Req#request{redirectCount = 1 + Req#request.redirectCount, state = redirecting},
+  case (lists:keyfind("Location", 1, Head)) of
+    false ->
+      {retry, do_retry(Req, Opts)};
+    {"Location", RedirectUrl} ->
+      WrappedRequest = Req#request.wrappedRequest,
+      io:format("[Redirecting] (~s)~s ... ~n ... to ~s ~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest),
+        RedirectUrl]),
+      send(NewReq, Opts, RedirectUrl),
+      {done, Req}
+  end;
 
 handle_response({ok, StatusCode, _Head, _Body}, Req, Options)
   when "301" == StatusCode; "302" == StatusCode,
   Req#request.redirectCount == Options#options.max_redirects_until_declared_error ->
-
+  erlang:display(Options#options.max_redirects_until_declared_error),
+  erlang:display(Req#request.redirectCount),
   WrappedReq = Req#request.wrappedRequest,
-  NewReq = #request{wrappedRequest = WrappedReq, state = dead},
-  {ok, _} = tinymq:push("dead", NewReq),
-  io:format("[Dead#to_many_redirects] (~s)~s ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
-  {dead, NewReq};
-
-handle_response({ok, StatusCode, Head, _Body}, FunlRequest, _Options) when "301" == StatusCode; "302" == StatusCode ->
-  WrappedRequest = FunlRequest#request.wrappedRequest,
-  NewFunlRequest = #request{wrappedRequest = WrappedRequest,
-    redirectCount = 1 + FunlRequest#request.redirectCount, state = redirecting},
-  case (lists:keyfind("Location", 1, Head)) of
-    false ->
-      {dead, FunlRequest};
-    {"Location", RedirectUrl} ->
-      io:format("[Redirecting] (~s)~s ... ~n ... to ~s ~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest),
-        RedirectUrl]),
-      send(NewFunlRequest, RedirectUrl),
-      {done, FunlRequest}
-  end;
+  io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
+  {retrying, do_retry(Req, Options)};
 
 handle_response(_, Req, Options) when (Req#request.errCount == Options#options.max_errors_until_declare_dead) ->
   WrappedRequest = Req#request.wrappedRequest,
@@ -67,13 +67,12 @@ handle_response({error, caught, Error}, Req, Opts) ->
   erlang:display(Error),
   {retrying, do_retry(Req, Opts)}.
 
-
 do_retry(Req, Options) ->
-  WrappedReq = Req#request.wrappedRequest,
   NewErrCount = Req#request.errCount + 1,
-  NewReq = Req#request{errCount = NewErrCount, state = retrying, wrappedRequest = WrappedReq},
+  NewReq = Req#request{errCount = NewErrCount, state = retrying},
   Delay = calculate_delay(NewReq, Options),
   erlang:start_timer(Delay, self(), NewReq),
+  WrappedReq = Req#request.wrappedRequest,
   io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.errCount,
     cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), round(Delay / 1000)]),
   NewReq.
