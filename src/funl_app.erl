@@ -1,6 +1,4 @@
-%% @private
 -module(funl_app).
--include("funl_options.hrl").
 -behaviour(application).
 
 %% API.
@@ -9,10 +7,11 @@
 %% API.
 
 start(_Type, _Args) ->
-  Options = parse_config_file("/Users/adi/dev/erlang/funl/conf.yml"),
+  Options = funl_options_factory:create_from_file("/Users/adi/dev/erlang/funl/conf.yml"),
   io:format("Loaded config: ~p~n", [Options]),
   funl_queue_consumer:start("pending", Options),
-  start_http_listener().
+  start_http_listener(),
+  funl_sup:start_link().
 
 start_http_listener() ->
   Dispatch = cowboy_router:compile([
@@ -22,30 +21,9 @@ start_http_listener() ->
   ]),
   {ok, _} = cowboy:start_http(http, 100, [{port, 8080}], [
     {env, [{dispatch, Dispatch}]}
-  ]),
-
-  funl_sup:start_link().
+  ]).
 
 stop(_State) ->
   ok.
-
-parse_config_file(Filepath) ->
-  Options = #options{},
-  [ConfOptions] = yamerl_constr:file(Filepath),
-  parse_config_options(ConfOptions, Options).
-
-parse_config_options([{Key, Value} | Rest], Options) ->
-  case Key of
-    "max_errors_until_declare_dead" -> Options2 = Options#options{max_errors_until_declare_dead = Value};
-    "max_redirects_until_declared_error" -> Options2 = Options#options{max_redirects_until_declared_error = Value};
-    "endpoint" -> Options2 = Options#options{endpoint = Value};
-    "route_strategy" -> Options2 = Options#options{route_strategy = Value};
-    "delay_factor" -> Options2 = Options#options{delay_factor = Value}
-  end,
-  parse_config_options(Rest, Options2);
-
-parse_config_options([], Options) ->
-  Options.
-
 
 
