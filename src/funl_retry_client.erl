@@ -7,8 +7,12 @@ send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint} 
   erlang:display(Endpoint),
   Method = list_to_atom(string:to_lower(binary_to_list(cowboy_req:method(WrappedReq)))),
   Headers = cowboy_req:headers(WrappedReq),
-  Resp = ibrowse:send_req(Endpoint, Headers, Method),
-  handle_response(Resp, Req, Options).
+
+  try ibrowse:send_req(Endpoint, Headers, Method) of
+    Resp -> handle_response(Resp, Req, Options)
+  catch
+    _:Error -> handle_response({error, caught, Error}, Req, Options)
+  end.
 
 handle_response({ok, "200", _Head, _Body}, FunlRequest, _Options) ->
   WrappedRequest = FunlRequest#request.wrappedRequest,
@@ -17,7 +21,7 @@ handle_response({ok, "200", _Head, _Body}, FunlRequest, _Options) ->
   {done, NewRequest};
 
 handle_response({ok, StatusCode, _Head, _Body}, Req, Options)
-  when "301" == StatusCode ; "302" == StatusCode,
+  when "301" == StatusCode; "302" == StatusCode,
   Req#request.redirectCount == Options#options.max_redirects_until_declared_error ->
 
   WrappedReq = Req#request.wrappedRequest,
@@ -26,7 +30,7 @@ handle_response({ok, StatusCode, _Head, _Body}, Req, Options)
   io:format("[Dead#to_many_redirects] (~s)~s ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
   {dead, NewReq};
 
-handle_response({ok, StatusCode, Head, _Body}, FunlRequest, _Options) when "301" == StatusCode ; "302" == StatusCode ->
+handle_response({ok, StatusCode, Head, _Body}, FunlRequest, _Options) when "301" == StatusCode; "302" == StatusCode ->
   WrappedRequest = FunlRequest#request.wrappedRequest,
   NewFunlRequest = #request{wrappedRequest = WrappedRequest,
     redirectCount = 1 + FunlRequest#request.redirectCount, state = redirecting},
@@ -48,16 +52,31 @@ handle_response(_, Req, Options) when (Req#request.errCount == Options#options.m
     cowboy_req:url(WrappedRequest)]),
   {dead, NewRequest};
 
-handle_response({ok, Status, _Head, _Body}, Req, Options) ->
+%% ibrowse errors
+handle_response({error, Error}, Req, Opts) ->
+  erlang:display(Error),
+  {retrying, do_retry(Req, Opts)};
+
+%% http status code error (ex: 503)
+handle_response({ok, _ErrorStatusCode, _Head, _Body}, Req, Opts) ->
+  erlang:display(_ErrorStatusCode),
+  {retrying, do_retry(Req, Opts)};
+
+%% other unknown errors
+handle_response({error, caught, Error}, Req, Opts) ->
+  erlang:display(Error),
+  {retrying, do_retry(Req, Opts)}.
+
+
+do_retry(Req, Options) ->
   WrappedReq = Req#request.wrappedRequest,
   NewErrCount = Req#request.errCount + 1,
   NewReq = Req#request{errCount = NewErrCount, state = retrying, wrappedRequest = WrappedReq},
   Delay = calculate_delay(NewReq, Options),
   erlang:start_timer(Delay, self(), NewReq),
-  io:format("[Retrying#~B] (~s)~s -> status code:~s, delay:~Bs ~n", [NewReq#request.errCount,
-    cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), Status, round(Delay / 1000)]),
-
-  {retrying, NewReq}.
+  io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.errCount,
+    cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), round(Delay / 1000)]),
+  NewReq.
 
 calculate_delay(#request{errCount = ErrCount}, Options) ->
   Options#options.delay_factor * trunc(1000 * math:pow(2, ErrCount)).

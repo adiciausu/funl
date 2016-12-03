@@ -1,5 +1,5 @@
 max_errors_until_declare_dead: 100
 max_redirects_until_declared_error: 5
-endpoint: http://erlang.org/doc/man/lists.html
+endpoint: http://erlssssang.org/doc/man/lists.html
 route_strategy:  all_to_endpoint #coming soon "all_paths_relative_to_enpoint"
 delay_factor: 5
