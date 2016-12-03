@@ -35,16 +35,15 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
       {done, Req}
   end;
 
-handle_response({ok, StatusCode, _Head, _Body}, Req, Options)
-  when "301" == StatusCode; "302" == StatusCode,
-  Req#request.redirectCount == Options#options.max_redirects_until_declared_error ->
+handle_response(_Resp, Req, Options)
+  when Req#request.redirectCount >= Options#options.max_redirects_until_declared_error ->
   erlang:display(Options#options.max_redirects_until_declared_error),
   erlang:display(Req#request.redirectCount),
   WrappedReq = Req#request.wrappedRequest,
   io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
   {retrying, do_retry(Req, Options)};
 
-handle_response(_, Req, Options) when (Req#request.errCount == Options#options.max_errors_until_declare_dead) ->
+handle_response(_, Req, Options) when (Req#request.errCount >= Options#options.max_errors_until_declare_dead) ->
   WrappedRequest = Req#request.wrappedRequest,
   NewRequest = #request{wrappedRequest = WrappedRequest},
   {ok, _} = tinymq:push("dead", NewRequest),
