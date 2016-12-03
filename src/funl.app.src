@@ -8,7 +8,8 @@
     stdlib,
     cowboy,
     tinymq,
-    ibrowse
+    ibrowse,
+    yamerl
    ]},
   {env,[]},
   {modules, []},

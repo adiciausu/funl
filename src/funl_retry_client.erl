@@ -1,14 +1,11 @@
 -module(funl_retry_client).
 -include("funl_request.hrl").
--include("funl_retry_options.hrl").
+-include("funl_options.hrl").
 -export([send/2]).
 
-send(FunlRequest, Endpoint) ->
-  Options = #retry_options{},
-  send(FunlRequest, Endpoint, Options).
-
-send(FunlRequest, Host, Options) ->
-  Response = ibrowse:send_req(Host, [], get),
+send(FunlRequest, #options{endpoint = Endpoint} = Options) ->
+  erlang:display(Endpoint),
+  Response = ibrowse:send_req(Endpoint, [], get),
   handle_response(Response, FunlRequest, Options).
 
 handle_response({ok, "200", _Head, _Body}, FunlRequest, _Options) ->
@@ -19,7 +16,7 @@ handle_response({ok, "200", _Head, _Body}, FunlRequest, _Options) ->
 
 handle_response({ok, StatusCode, _Head, _Body}, Req, Options)
   when "301" == StatusCode ; "302" == StatusCode,
-  Req#funl_request.redirectCount == Options#retry_options.maxRedirectCount ->
+  Req#funl_request.redirectCount == Options#options.max_redirects_until_declared_error ->
 
   WrappedReq = Req#funl_request.wrappedRequest,
   NewReq = #funl_request{wrappedRequest = WrappedReq, state = dead},
@@ -41,7 +38,7 @@ handle_response({ok, StatusCode, Head, _Body}, FunlRequest, _Options) when "301"
       {done, FunlRequest}
   end;
 
-handle_response(_, Req, Options) when (Req#funl_request.errCount == Options#retry_options.maxErrCount) ->
+handle_response(_, Req, Options) when (Req#funl_request.errCount == Options#options.max_errors_until_declare_dead) ->
   WrappedRequest = Req#funl_request.wrappedRequest,
   NewRequest = #funl_request{wrappedRequest = WrappedRequest},
   {ok, _} = tinymq:push("dead", NewRequest),
