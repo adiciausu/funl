@@ -1,5 +1,6 @@
 -record(funl_request, {
-  errCount :: non_neg_integer(),
+  errCount = 0 :: non_neg_integer(),
+  redirectCount = 0 :: non_neg_integer(),
   wrappedRequest :: tuple(),
-  state = pending :: dead | pending | retry | done
+  state = pending :: pending | redirecting | retrying | done | dead
 }).
