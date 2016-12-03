@@ -22,19 +22,6 @@ handle_response({ok, "200", _Head, _Body}, Req, _Options) ->
   io:format("[Done] (~s)~s ~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest)]),
   {done, Req#request{state = done}};
 
-handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
-  NewReq = Req#request{redirectCount = 1 + Req#request.redirectCount, state = redirecting},
-  case (lists:keyfind("Location", 1, Head)) of
-    false ->
-      {retry, do_retry(Req, Opts)};
-    {"Location", RedirectUrl} ->
-      WrappedRequest = Req#request.wrappedRequest,
-      io:format("[Redirecting] (~s)~s ... ~n ... to ~s ~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest),
-        RedirectUrl]),
-      send(NewReq, Opts, RedirectUrl),
-      {done, Req}
-  end;
-
 handle_response(_Resp, Req, Options)
   when Req#request.redirectCount >= Options#options.max_redirects_until_declared_error ->
   erlang:display(Options#options.max_redirects_until_declared_error),
@@ -42,6 +29,19 @@ handle_response(_Resp, Req, Options)
   WrappedReq = Req#request.wrappedRequest,
   io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
   {retrying, do_retry(Req, Options)};
+
+handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
+  NewReq = Req#request{redirectCount = 1 + Req#request.redirectCount, state = redirecting},
+  case (lists:keyfind("Location", 1, Head)) of
+    false ->
+      {retry, do_retry(Req, Opts)};
+    {"Location", RedirectUrl} ->
+      WrappedRequest = Req#request.wrappedRequest,
+      io:format("[Redirecting#~B] (~s)~s ... ~n ... to ~s ~n", [NewReq#request.redirectCount, cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest),
+        RedirectUrl]),
+      send(NewReq, Opts, RedirectUrl),
+      {done, Req}
+  end;
 
 handle_response(_, Req, Options) when (Req#request.errCount >= Options#options.max_errors_until_declare_dead) ->
   WrappedRequest = Req#request.wrappedRequest,
@@ -68,7 +68,7 @@ handle_response({error, caught, Error}, Req, Opts) ->
 
 do_retry(Req, Options) ->
   NewErrCount = Req#request.errCount + 1,
-  NewReq = Req#request{errCount = NewErrCount, state = retrying},
+  NewReq = Req#request{errCount = NewErrCount, redirectCount = 0, state = retrying},
   Delay = calculate_delay(NewReq, Options),
   erlang:start_timer(Delay, self(), NewReq),
   WrappedReq = Req#request.wrappedRequest,

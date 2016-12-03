@@ -1,6 +1,8 @@
 max_errors_until_declare_dead: 100
 max_redirects_until_declared_error: 5
-endpoint: http://sstackoverflow.com/questions/4412640/how-to-get-try-catch-to-work-in-erlang #test redirect, done
+#endpoint: http://www.eva.ro #test ok
+#endpoint: http://www.dasdsada.ro #test nok
 #endpoint: http://sentimente.ro #test redirect, retry
+endpoint: http://127.0.0.1:8081/redirect
 route_strategy:  all_to_endpoint #coming soon "all_paths_relative_to_enpoint"
 delay_factor: 5

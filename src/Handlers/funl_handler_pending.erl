@@ -1,6 +1,6 @@
 -module(funl_handler_pending).
 
--include("funl_request.hrl").
+-include("../funl_request.hrl").
 
 -export([init/2]).
 
