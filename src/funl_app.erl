@@ -32,7 +32,7 @@ start_test_backend() ->
       {"/redirect", funl_handler_test_fail_redirect, []}
     ]}
   ]),
-  {ok, _} = cowboy:start_http(http2, 100, [{port, 8081}], [
+  {ok, _} = cowboy:start_http(httptest, 100, [{port, 8081}], [
     {env, [{dispatch, Dispatch}]}
   ]).
 

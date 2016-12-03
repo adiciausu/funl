@@ -3,7 +3,11 @@
 -include("funl_options.hrl").
 -export([send/2, send/3]).
 
-send(Req, #options{endpoint = Endpoint} = Options) ->
+send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint, route_strategy = all_paths_relative_to_enpoint} = Options) ->
+  NewEndpoint = string:concat(Endpoint, string:concat(binary_to_list(cowboy_req:path(WrappedReq)), binary_to_list(cowboy_req:qs(WrappedReq)))),
+  send(Req, Options, NewEndpoint);
+
+send(Req, #options{endpoint = Endpoint, route_strategy = all_to_endpoint} = Options) ->
   send(Req, Options, Endpoint).
 
 send(#request{wrappedRequest = WrappedReq} = Req, Options, Endpoint) ->
@@ -24,8 +28,6 @@ handle_response({ok, "200", _Head, _Body}, Req, _Options) ->
 
 handle_response(_Resp, Req, Options)
   when Req#request.redirectCount >= Options#options.max_redirects_until_declared_error ->
-  erlang:display(Options#options.max_redirects_until_declared_error),
-  erlang:display(Req#request.redirectCount),
   WrappedReq = Req#request.wrappedRequest,
   io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
   {retrying, do_retry(Req, Options)};
@@ -70,7 +72,7 @@ do_retry(Req, Options) ->
   NewErrCount = Req#request.errCount + 1,
   NewReq = Req#request{errCount = NewErrCount, redirectCount = 0, state = retrying},
   Delay = calculate_delay(NewReq, Options),
-  erlang:start_timer(Delay, self(), NewReq),
+  erlang:start_timer(Delay, self(),  ),
   WrappedReq = Req#request.wrappedRequest,
   io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.errCount,
     cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), round(Delay / 1000)]),
