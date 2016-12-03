@@ -9,7 +9,9 @@
 %% API.
 
 start(_Type, _Args) ->
-  funl_queue_consumer:start("pending"),
+  Queue = "pending",
+  Endpoint = "http://stackoverflow.com/squestions/4103731/is-it-possible-to-use-record-name-as-a-parameter-in-erlang",
+  funl_queue_consumer:start(Queue, Endpoint),
   start_http_listener().
 
 start_http_listener() ->
