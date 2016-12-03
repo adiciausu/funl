@@ -1,40 +1,33 @@
 -module(funl_retry_client).
 -include("funl_request.hrl").
 -export([send/1]).
--define(should_stop(FunlReq), element(2, FunlReq) == 10).
+-define(should_stop(FunlReq), element(2, FunlReq) == 5).
 
 send(FunlRequest) ->
-  Timer = erlang:send_after(1, self(), FunlRequest),
-  send(FunlRequest, Timer).
-
-send(FunlRequest, OldTimer) ->
-  erlang:cancel_timer(OldTimer),
-  Host = "http://stackoverflow.com/squestions/4103731/is-it-possible-to-use-record-name-as-a-parameter-in-erlang",
+  Host = "http://sstackoverflow.com/questions/4103731/is-it-possible-to-use-record-name-as-a-parameter-in-erlang",
   Response = ibrowse:send_req(Host, [], get),
-  ProcessingInfo = process_response(Response, FunlRequest),
-  io:format("~n~p~n", [ProcessingInfo]),
-  case ProcessingInfo of
-    {done, _} ->
-      io:format("~nRequest 200 OK ~n"),
-      ok;
-    {dead, FunlRequest} ->
-      {ok, _} = tinymq:push("pending_requests", FunlRequest),
-      io:format("~nRequest ~n~p~n readded to queue~n", [FunlRequest]),
-      ok;
-    {retry, FunlRequest} ->
-      Timer = erlang:send_after(4000, self(), FunlRequest),
-      io:format("~n[#~B]Request ~n~p~n readded to pending because of response ~n~p~n",
-        [FunlRequest#funl_request.errCount + 1, FunlRequest#funl_request.request, Response]),
-      {noreply, Timer}
-  end.
+  handle_response(Response, FunlRequest).
 
-process_response({_, "200", _, FunlRequest}, _) ->
+handle_response({ok, "200", _Head, _Body}, FunlRequest) ->
+  io:format("~nRequest handled succesfuly ~n"),
   NewRequest = FunlRequest#funl_request{state = done, errCount = 0},
+
   {done, NewRequest};
-process_response(_, FunlRequest) when ?should_stop(FunlRequest) ->
+
+handle_response(_, FunlRequest) when ?should_stop(FunlRequest) ->
   NewRequest = FunlRequest#funl_request{state = dead, errCount = 0},
+  WrappedRequest = FunlRequest#funl_request.wrappedRequest,
+  {ok, _} = tinymq:push("dead", FunlRequest),
+  io:format("~nRequest [~s]~s moved to dead requests queue~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest)]),
+
   {dead, NewRequest};
-process_response(_, FunlRequest) ->
+
+handle_response({ok, Status, _Head, _Body}, FunlRequest) ->
   NewErrCount = FunlRequest#funl_request.errCount + 1,
-  NewRequest = FunlRequest#funl_request{errCount = NewErrCount, state = retry},
-  {retry, NewRequest}.
+  NewFunlRequest = FunlRequest#funl_request{errCount = NewErrCount, state = retry},
+  WrappedRequest = NewFunlRequest#funl_request.wrappedRequest,
+  io:format("~nRequest [~s]~s failed ~B times with status code ~s", [cowboy_req:method(WrappedRequest),
+    cowboy_req:url(WrappedRequest), NewFunlRequest#funl_request.errCount, Status]),
+  erlang:start_timer(1000 * NewFunlRequest#funl_request.errCount, self(), NewFunlRequest),
+
+  {retry, NewFunlRequest}.

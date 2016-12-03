@@ -1,13 +1,13 @@
 -module(funl_queue_consumer).
 
--export([start/0, consume/1]).
+-export([start/1, consume/2]).
 
-start() ->
-  Timestamp = tinymq:now("pending_requests"),
-  spawn(funl_queue_consumer, consume, [Timestamp]).
+start(Queue) ->
+  Timestamp = tinymq:now(Queue),
+  spawn(funl_queue_consumer, consume, [Timestamp, Queue]).
 
-consume(Timestamp) ->
-  tinymq:subscribe("pending_requests",
+consume(Timestamp, Queue) ->
+  tinymq:subscribe(Queue,
     Timestamp,     % The 'now' atom or a Timestamp
     self()   % the process that will recieve the messages
   ),
@@ -16,8 +16,8 @@ consume(Timestamp) ->
   %% hack for problem with tinymq enclosing FunlRequest in array recursively
     {_From, NewTimestamp, [FunlRequest | _]} ->
       funl_retry_client:send(FunlRequest),
-      consume(NewTimestamp);
+      consume(NewTimestamp, Queue);
     {_From, NewTimestamp, FunlRequest} ->
       funl_retry_client:send(FunlRequest),
-      consume(NewTimestamp)
+      consume(NewTimestamp, Queue)
   end.

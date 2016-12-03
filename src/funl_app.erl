@@ -9,13 +9,13 @@
 %% API.
 
 start(_Type, _Args) ->
-  funl_queue_consumer:start(),
+  funl_queue_consumer:start("pending"),
   start_http_listener().
 
 start_http_listener() ->
   Dispatch = cowboy_router:compile([
     {'_', [
-      {"/", funl_handler, []}
+      {"/", funl_handler_pending, []}
     ]}
   ]),
   {ok, _} = cowboy:start_http(http, 100, [{port, 8080}], [
