@@ -1,12 +1,22 @@
 -module(funl_retry_client).
 -include("funl_request.hrl").
--export([send/1]).
+-export([send/2]).
 -define(should_stop(FunlReq), element(2, FunlReq) == 5).
 
-send(FunlRequest) ->
-  Host = "http://sstackoverflow.com/questions/4103731/is-it-possible-to-use-record-name-as-a-parameter-in-erlang",
+send(FunlRequest, Host) ->
   Response = ibrowse:send_req(Host, [], get),
   handle_response(Response, FunlRequest).
+
+handle_response({ok, "302", Head, _Body}, FunlRequest) ->
+  io:format("Following redirect...~n"),
+  case (lists:keyfind("Location", 1, Head)) of
+    false ->
+      {dead, FunlRequest};
+    {"Location", RedirectUrl} ->
+      erlang:display(RedirectUrl),
+      send(FunlRequest, RedirectUrl),
+      {done, FunlRequest}
+  end;
 
 handle_response({ok, "200", _Head, _Body}, FunlRequest) ->
   io:format("~nRequest handled succesfuly ~n"),
