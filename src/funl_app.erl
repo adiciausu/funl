@@ -9,7 +9,7 @@
 %% API.
 
 start(_Type, _Args) ->
-  Options = parse_config_file("/Users/adi/dev/erlang/conf.yml"),
+  Options = parse_config_file("/Users/adi/dev/erlang/funl/conf.yml"),
   io:format("Loaded config: ~p~n", [Options]),
   funl_queue_consumer:start("pending", Options),
   start_http_listener().
@@ -39,7 +39,8 @@ parse_config_options([{Key, Value} | Rest], Options) ->
     "max_errors_until_declare_dead" -> Options2 = Options#options{max_errors_until_declare_dead = Value};
     "max_redirects_until_declared_error" -> Options2 = Options#options{max_redirects_until_declared_error = Value};
     "endpoint" -> Options2 = Options#options{endpoint = Value};
-    "route_strategy" -> Options2 = Options#options{route_strategy = Value}
+    "route_strategy" -> Options2 = Options#options{route_strategy = Value};
+    "delay_factor" -> Options2 = Options#options{delay_factor = Value}
   end,
   parse_config_options(Rest, Options2);
 
