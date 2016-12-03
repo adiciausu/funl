@@ -3,10 +3,12 @@
 -include("funl_options.hrl").
 -export([send/2]).
 
-send(FunlRequest, #options{endpoint = Endpoint} = Options) ->
+send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint} = Options) ->
   erlang:display(Endpoint),
-  Response = ibrowse:send_req(Endpoint, [], get),
-  handle_response(Response, FunlRequest, Options).
+  Method = list_to_atom(string:to_lower(binary_to_list(cowboy_req:method(WrappedReq)))),
+  Headers = cowboy_req:headers(WrappedReq),
+  Resp = ibrowse:send_req(Endpoint, Headers, Method),
+  handle_response(Resp, Req, Options).
 
 handle_response({ok, "200", _Head, _Body}, FunlRequest, _Options) ->
   WrappedRequest = FunlRequest#request.wrappedRequest,
