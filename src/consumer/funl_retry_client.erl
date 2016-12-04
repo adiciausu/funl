@@ -1,6 +1,6 @@
 -module(funl_retry_client).
--include("../include/funl_request.hrl").
--include("../include/funl_options.hrl").
+-include("../../include/funl_request.hrl").
+-include("../../include/funl_options.hrl").
 -export([send/2]).
 
 send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint, route_strategy = all_paths_relative_to_enpoint} = Options) ->

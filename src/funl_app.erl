@@ -4,13 +4,13 @@
 -export([start/2, stop/1]).
 
 start(_Type, _Args) ->
-    spawn(fun start_test_backend/0),
-    
     Options = funl_options_factory:create_from_file("/Users/adi/dev/erlang/funl/conf.yml"),
     io:format("Loaded config: ~p~n", [Options]),
-
+    
+    spawn(fun start_test_backend/0), %% REMOVE IN PRODUCTION
     start_http_listener(),%%  self supervised?
-    funl_sup:start_link().
+    
+    funl_sup:start_link(Options).
 
 start_http_listener() ->
     Dispatch = cowboy_router:compile([

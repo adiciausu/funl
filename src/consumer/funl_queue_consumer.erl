@@ -1,9 +1,8 @@
 -module(funl_queue_consumer).
--include("../include/funl_options.hrl").
-
+-include("../../include/funl_options.hrl").
 -behaviour(gen_server).
 
--export([start_link/0]).
+-export([start_link/2]).
 -export([init/1,           %% gen_server callbacks
     handle_call/3,
     handle_cast/2,
@@ -13,12 +12,10 @@
 
 -record(state, {}).
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Options, Queue) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [Options, Queue], []).
 
-init([]) ->
-    Queue = "pending",
-    Options = #options{},
+init([Options, Queue]) ->
     Timestamp = tinymq:now(Queue),
     consume(Timestamp, Queue, Options),
     {ok, #state{}}.
@@ -38,7 +35,6 @@ consume(Timestamp, Queue, Options) ->
         Timestamp,     % The 'now' atom or a Timestamp
         self()   % the process that will recieve the messages
     ),
-    
     receive
     %% hack for problem with tinymq enclosing FunlRequest in array recursively
         {_From, NewTimestamp, [Req | _]} ->
