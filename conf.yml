@@ -1,4 +1,4 @@
-max_redirects: 100
+max_redirects: 10
 max_errors: 100
 delay_factor: 5
 #endpoint: http://www.eva.ro #test ok

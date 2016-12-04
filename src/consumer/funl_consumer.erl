@@ -1,4 +1,4 @@
--module(funl_queue_consumer).
+-module(funl_consumer).
 -include("../../include/funl_options.hrl").
 -behaviour(gen_server).
 
@@ -16,8 +16,7 @@ start_link(Options, Queue) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [Options, Queue], []).
 
 init([Options, Queue]) ->
-    Timestamp = tinymq:now(Queue),
-    consume(Timestamp, Queue, Options),
+    consume(Queue, Options),
     {ok, #state{}}.
 handle_call(_Request, _From, State) ->
     {reply, ignored, State}.
@@ -30,17 +29,14 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-consume(Timestamp, Queue, Options) ->
-    tinymq:subscribe(Queue,
-        Timestamp,     % The 'now' atom or a Timestamp
-        self()   % the process that will recieve the messages
-    ),
-    receive
-    %% hack for problem with tinymq enclosing FunlRequest in array recursively
-        {_From, NewTimestamp, [Req | _]} ->
-            funl_retry_client:send(Req, Options),
-            consume(NewTimestamp, Queue, Options);
-        {_From, NewTimestamp, Req} ->
-            funl_retry_client:send(Req, Options),
-            consume(NewTimestamp, Queue, Options)
-    end.
+%%    MUST REFACTOR THIS
+consume(Queue, Options) ->
+    {_, _, Time} = os:timestamp(),
+    Reqs = funl_queue:peek(Time),
+    consume(Queue, Options, Reqs).
+
+consume(Queue, Options, [Req | _Reqs]) ->
+    funl_retry_client:send(Req, Options),
+    consume(Queue, Options, _Reqs);
+consume(Queue, Options, []) ->
+    consume(Queue, Options).

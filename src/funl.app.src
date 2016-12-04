@@ -9,8 +9,8 @@
   {applications,
    [kernel,
     stdlib,
+    mnesia,
     cowboy,
-    tinymq,
     ibrowse,
     yamerl
    ]},
