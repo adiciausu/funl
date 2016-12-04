@@ -1,22 +1,23 @@
 %% @private
 -module(funl_sup).
-
 -behaviour(supervisor).
-
-%% API.
 -export([start_link/0]).
 
-%% supervisor.
+%% supervisor callbacks.
 -export([init/1]).
-
-%% API.
 
 -spec start_link() -> {ok, pid()}.
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 %% supervisor.
-
 init([]) ->
-    Procs = [],
-    {ok, {{one_for_one, 10, 10}, Procs}}.
+    Procs = [{funl_queue_consumer, {funl_queue_consumer, start_link, []},
+        permanent, 5000, worker, [funl_queue_consumer]}],
+    
+    RestartStrategy = one_for_all,
+    MaxRestarts = 1000,
+    MaxSecondsBetweenRestarts = 3600,
+    
+    SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
+    {ok, {SupFlags, Procs}}.

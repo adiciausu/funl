@@ -1,8 +1,9 @@
-max_errors_until_declare_dead: 100
-max_redirects_until_declared_error: 5
+max_redirects: 100
+max_errors: 100
+delay_factor: 5
 #endpoint: http://www.eva.ro #test ok
 #endpoint: http://www.dasdsada.ro #test nok
 #endpoint: http://sentimente.ro #test redirect, retry
 endpoint: http://127.0.0.1:8081
 route_strategy:  all_paths_relative_to_enpoint #also available"all_to_endpoint "
-delay_factor: 5
+

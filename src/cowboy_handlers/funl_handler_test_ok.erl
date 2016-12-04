@@ -1,7 +1,5 @@
 -module(funl_handler_test_ok).
-
--include("../funl_request.hrl").
-
+-include("../../include/funl_request.hrl").
 -export([init/2]).
 
 init(Req, Opts) ->

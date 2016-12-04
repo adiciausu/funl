@@ -1,6 +1,6 @@
 -module(funl_retry_client).
--include("funl_request.hrl").
--include("options/funl_options.hrl").
+-include("../include/funl_request.hrl").
+-include("../include/funl_options.hrl").
 -export([send/2]).
 
 send(#request{wrappedRequest = WrappedReq} = Req, #options{endpoint = Endpoint, route_strategy = all_paths_relative_to_enpoint} = Options) ->
@@ -29,7 +29,7 @@ handle_response({ok, "200", _Head, _Body}, Req, _Options) ->
 
 %% max redirects
 handle_response(_Resp, Req, Options)
-  when Req#request.redirectCount >= Options#options.max_redirects_until_declared_error ->
+  when Req#request.redirectCount >= Options#options.max_redirects ->
   WrappedReq = Req#request.wrappedRequest,
   io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
   {retrying, do_retry(Req, Options)};
@@ -49,7 +49,7 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
   end;
 
 %% max err count
-handle_response(_, Req, Options) when (Req#request.errCount >= Options#options.max_errors_until_declare_dead) ->
+handle_response(_, Req, Options) when (Req#request.errCount >= Options#options.max_errors) ->
   WrappedRequest = Req#request.wrappedRequest,
   NewRequest = #request{wrappedRequest = WrappedRequest},
   {ok, _} = tinymq:push("dead", NewRequest),
