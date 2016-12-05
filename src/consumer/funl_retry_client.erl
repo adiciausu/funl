@@ -49,15 +49,6 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
             {done, Req}
     end;
 
-%% max err count
-handle_response(_, Req, Options) when (Req#request.err_count >= Options#options.max_errors) ->
-    WrappedRequest = Req#request.wrapped_request,
-    NewRequest = #request{wrapped_request = WrappedRequest},
-%%  {ok, _} = tinymq:push("dead", NewRequest),
-    io:format("[Dead#to_many_errors] (~s)~s ~n", [cowboy_req:method(WrappedRequest),
-        cowboy_req:url(WrappedRequest)]),
-    {dead, NewRequest};
-
 %% ibrowse errors
 handle_response({error, Error}, Req, Opts) ->
     erlang:display(Error),
@@ -76,8 +67,11 @@ handle_response({error, caught, Error}, Req, Opts) ->
 do_retry(Req, Options) ->
     NewErrCount = Req#request.err_count + 1,
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
+    {_, _, Time} = os:timestamp(),
     Delay = calculate_delay(NewReq, Options),
-    erlang:start_timer(Delay, self(), NewReq),
+    NewReq2 = NewReq#request{next_retry = Time + Delay},
+    funl_queue:enq(NewReq2),
+    
     WrappedReq = Req#request.wrapped_request,
     io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
         cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), round(Delay / 1000)]),

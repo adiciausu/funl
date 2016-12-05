@@ -26,6 +26,8 @@ peek(Start, End) ->
 
 deq(Id) ->
     gen_server:call(?MODULE, {deq, Id}).
+update(Id, Elem) ->
+    gen_server:call(?MODULE, {update, Id}).
 
 init([Name]) ->
     {atomic, ok} = mnesia:create_table(request, [

@@ -34,9 +34,10 @@ consume(Queue, Options) ->
     {_, _, Time} = os:timestamp(),
     Reqs = funl_queue:peek(Time),
     consume(Queue, Options, Reqs).
-
+ 
 consume(Queue, Options, [Req | _Reqs]) ->
     funl_retry_client:send(Req, Options),
     consume(Queue, Options, _Reqs);
 consume(Queue, Options, []) ->
     consume(Queue, Options).
+        
