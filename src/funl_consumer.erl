@@ -33,7 +33,8 @@ code_change(_OldVsn, State, _Extra) ->
 consume(Queue, Options) ->
     case funl_timed_queue:deq() of
         [] -> ok;
-        Req -> erlang:display(Req), funl_retry_client:send(Req, Options)
+        Req -> funl_retry_client:send(Req, Options)
     end,
+    timer:sleep(20),
     consume(Queue, Options).
         
