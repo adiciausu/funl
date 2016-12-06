@@ -33,7 +33,6 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({enq, Item, UnlockTime}, _From, State) ->
-    erlang:display(enq),
     T = fun() ->
         QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), next_iteration = UnlockTime, item = Item},
         mnesia:write(QueuedItem)
