@@ -13,7 +13,8 @@ send(Req, #options{endpoint = Endpoint, route_strategy = all_to_endpoint} = Opti
 send(#request{wrapped_request = WrappedReq} = Req, Options, Endpoint) ->
     erlang:display(Endpoint),
     Method = list_to_atom(string:to_lower(binary_to_list(cowboy_req:method(WrappedReq)))),
-    Headers = cowboy_req:headers(WrappedReq),
+%%    Headers = cowboy_req:headers(WrappedReq),
+    Headers = [],
     
     try ibrowse:send_req(Endpoint, Headers, Method) of
         Resp -> handle_response(Resp, Req, Options)
