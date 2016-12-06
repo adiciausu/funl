@@ -12,14 +12,10 @@ start_link(Options) ->
 %% supervisor.
 init([Options]) ->
     Procs = [
-        {funl_pending, {funl_queue, start_link, [pending]},
+        {funl_queue, {funl_timed_queue, start_link, []},
             permanent, 5000, worker, [funl_queue]},
-%%        {funl_queue_dead, {funl_queue, start_link, [dead]},
-%%            permanent, 5000, worker, [funl_queue]},
-        {funl_consumer_pending, {funl_consumer, start_link, [Options, "pending"]},
-            permanent, 5000, worker, [funl_consumer, funl_queue_consumer_pending]},
-        {funl_consumer_dead, {funl_consumer, start_link, [Options, "dead"]},
-            permanent, 5000, worker, [funl_consumer, funl_queue_consumer_dead]}
+        {funl_consumer, {funl_consumer, start_link, [Options, request]},
+            permanent, 5000, worker, [funl_consumer]}
     ],
     
     RestartStrategy = one_for_one,

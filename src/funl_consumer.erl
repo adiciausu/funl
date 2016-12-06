@@ -1,5 +1,5 @@
 -module(funl_consumer).
--include("../../include/funl_options.hrl").
+-include("../include/funl_options.hrl").
 -behaviour(gen_server).
 
 -export([start_link/2]).
@@ -31,13 +31,9 @@ code_change(_OldVsn, State, _Extra) ->
 
 %%    MUST REFACTOR THIS
 consume(Queue, Options) ->
-    {_, _, Time} = os:timestamp(),
-    Reqs = funl_queue:peek(Time),
-    consume(Queue, Options, Reqs).
- 
-consume(Queue, Options, [Req | _Reqs]) ->
-    funl_retry_client:send(Req, Options),
-    consume(Queue, Options, _Reqs);
-consume(Queue, Options, []) ->
+    case funl_timed_queue:deq() of
+        [] -> ok;
+        Req -> erlang:display(Req), funl_retry_client:send(Req, Options)
+    end,
     consume(Queue, Options).
         

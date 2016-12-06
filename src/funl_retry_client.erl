@@ -1,6 +1,6 @@
 -module(funl_retry_client).
--include("../../include/funl_request.hrl").
--include("../../include/funl_options.hrl").
+-include("../include/funl_request.hrl").
+-include("../include/funl_options.hrl").
 -export([send/2]).
 
 send(#request{wrapped_request = WrappedReq} = Req, #options{endpoint = Endpoint, route_strategy = all_paths_relative_to_enpoint} = Options) ->
@@ -25,7 +25,6 @@ send(#request{wrapped_request = WrappedReq} = Req, Options, Endpoint) ->
 handle_response({ok, "200", _Head, _Body}, Req, _Options) ->
     WrappedRequest = Req#request.wrapped_request,
     io:format("[Done] (~s)~s ~n", [cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest)]),
-    funl_queue:deq(Req#request.id),
     {done, Req#request{state = done}};
 
 %% max redirects
@@ -34,7 +33,6 @@ handle_response(_Resp, Req, Options)
     WrappedReq = Req#request.wrapped_request,
     io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
     {retrying, do_retry(Req, Options)};
-
 %% redirect
 handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
     NewReq = Req#request{redirect_count = 1 + Req#request.redirect_count, state = redirecting},
@@ -48,7 +46,12 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
             send(NewReq, Opts, RedirectUrl),
             {done, Req}
     end;
-
+%% max errs
+handle_response(_Resp, Req, Options)
+    when Req#request.err_count >= Options#options.max_errors ->
+    WrappedReq = Req#request.wrapped_request,
+    io:format("[#to_many_redirects] (~s)~s, will retry ~n", [cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
+    {retrying, do_retry(Req, Options)};
 %% ibrowse errors
 handle_response({error, Error}, Req, Opts) ->
     erlang:display(Error),
@@ -67,15 +70,13 @@ handle_response({error, caught, Error}, Req, Opts) ->
 do_retry(Req, Options) ->
     NewErrCount = Req#request.err_count + 1,
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
-    {_, _, Time} = os:timestamp(),
     Delay = calculate_delay(NewReq, Options),
-    NewReq2 = NewReq#request{next_retry = Time + Delay},
-    funl_queue:enq(NewReq2),
-    
+    funl_timed_queue:enq(NewReq, erlang:system_time() + Delay),
+        
     WrappedReq = Req#request.wrapped_request,
     io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
-        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), round(Delay / 1000)]),
+        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), trunc(Delay / 1000000000)]),
     NewReq.
 
 calculate_delay(#request{err_count = ErrCount}, Options) ->
-    Options#options.delay_factor * trunc(1000 * math:pow(2, ErrCount)).
+    1000000000 * trunc(math:pow(Options#options.delay_factor, ErrCount)).
