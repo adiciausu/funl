@@ -71,12 +71,12 @@ do_retry(Req, Options) ->
     NewErrCount = Req#request.err_count + 1,
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
     Delay = calculate_delay(NewReq, Options),
-    funl_timed_queue:enq(NewReq, erlang:system_time() + Delay),
+    funl_timed_queue:enq(NewReq, funl_uid:timestamp() + Delay),
         
     WrappedReq = Req#request.wrapped_request,
     io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
-        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), trunc(Delay / 1000000000)]),
+        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), trunc(Delay / 1000000)]),
     NewReq.
 
 calculate_delay(#request{err_count = ErrCount}, Options) ->
-    1000000000 * trunc(math:pow(Options#options.delay_factor, ErrCount)).
+    1000000 * trunc(math:pow(Options#options.delay_factor, ErrCount)).

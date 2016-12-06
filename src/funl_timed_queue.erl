@@ -24,9 +24,6 @@ enq(Req, UnlockTime) ->
 deq() ->
     gen_server:call(?MODULE, {deq}).
 
-%%update(Id, Req) ->
-%%    gen_server:call(?MODULE, {update, Id}).
-
 init([]) ->
     {atomic, ok} = mnesia:create_table(queue_item, [
         {ram_copies, [node()]},
@@ -37,22 +34,29 @@ init([]) ->
 
 handle_call({enq, Item, UnlockTime}, _From, State) ->
     T = fun() ->
-        QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), item = Item},
+        QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), next_iteration = UnlockTime, item = Item},
         mnesia:write(QueuedItem)
         end,
     mnesia:transaction(T),
     {reply, sucess, State};
+
 handle_call({deq}, _From, State) ->
     T = fun() ->
         case mnesia:read(queue_item, mnesia:first(queue_item), write) of
             [] -> [];
-            [#queue_item{id = Id, item = Item}] ->
-                ok = mnesia:delete({queue_item, Id}),
-                Item
+            [#queue_item{next_iteration = UnlockTime, id = Id, item = Item}] ->
+                IsUnlocked = UnlockTime < funl_uid:timestamp(),
+                case IsUnlocked of
+                true ->
+                        ok = mnesia:delete({queue_item, Id}),
+                        Item;
+                    false -> []
+                end
         end
         end,
     {atomic, Data} = mnesia:transaction(T),
     {reply, Data, State};
+
 handle_call(_Msg, _From, State) ->
     {reply, ignored, State}.
 
