@@ -1,4 +1,4 @@
--module(funl_http_handler).
+-module(funl_http_listener).
 -include("../include/funl_request.hrl").
 -export([init/2]).
 

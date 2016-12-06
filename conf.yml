@@ -1,6 +1,6 @@
 max_redirects: 10
 max_errors: 100
 delay_factor: 5
-endpoint: http://requestb.in/18rch521?inspect
+endpoint: http://requestb.in/vgtkocvg
 route_strategy:  all_to_endpoint
 

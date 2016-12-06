@@ -6,20 +6,24 @@
 send(#request{wrapped_request = WrappedReq} = Req, #options{endpoint = Endpoint, route_strategy = all_paths_relative_to_enpoint} = Options) ->
     NewEndpoint = string:concat(Endpoint, string:concat(binary_to_list(cowboy_req:path(WrappedReq)), binary_to_list(cowboy_req:qs(WrappedReq)))),
     send(Req, Options, NewEndpoint);
-
 send(Req, #options{endpoint = Endpoint, route_strategy = all_to_endpoint} = Options) ->
     send(Req, Options, Endpoint).
-
 send(#request{wrapped_request = WrappedReq} = Req, Options, Endpoint) ->
     erlang:display(Endpoint),
     Method = list_to_atom(string:to_lower(binary_to_list(cowboy_req:method(WrappedReq)))),
-%%    Headers = cowboy_req:headers(WrappedReq),
-    Headers = [],
-    
-    try ibrowse:send_req(Endpoint, Headers, Method) of
-        Resp -> handle_response(Resp, Req, Options)
-    catch
-        _:Error -> handle_response({error, caught, Error}, Req, Options)
+    {ok, Body, _} = cowboy_req:body(WrappedReq),
+    Headers = headers(WrappedReq),
+    Resp = ibrowse:send_req(Endpoint, Headers, Method, Body),
+    handle_response(Resp, Req, Options).
+
+headers(WrappedReq) ->
+    Headers = cowboy_req:headers(WrappedReq),
+    headers(Headers, []).
+headers([], Acc) -> Acc;
+headers([{Key, Value} = Header | Rest], Acc) ->
+    case Key of
+        <<"host">> -> headers(Rest, lists:append(Acc, [{<<"X-Forwarded-For">>, Value}]));
+        _ -> headers(Rest, lists:append(Acc, [Header]))
     end.
 
 %%Ok
@@ -61,11 +65,6 @@ handle_response({error, Error}, Req, Opts) ->
 %% http status code error (ex: 503)
 handle_response({ok, _ErrorStatusCode, _Head, _Body}, Req, Opts) ->
     erlang:display(_ErrorStatusCode),
-    {retrying, do_retry(Req, Opts)};
-
-%% other unknown errors
-handle_response({error, caught, Error}, Req, Opts) ->
-    erlang:display(Error),
     {retrying, do_retry(Req, Opts)}.
 
 do_retry(Req, Options) ->
@@ -73,7 +72,7 @@ do_retry(Req, Options) ->
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
     Delay = calculate_delay(NewReq, Options),
     funl_timed_queue:enq(NewReq, funl_uid:timestamp() + Delay),
-        
+    
     WrappedReq = Req#request.wrapped_request,
     io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
         cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), trunc(Delay / 1000000)]),
