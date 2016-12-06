@@ -33,8 +33,8 @@ code_change(_OldVsn, State, _Extra) ->
 consume(Queue, Options) ->
     case funl_timed_queue:deq() of
         [] -> ok;
-        Req -> funl_retry_client:send(Req, Options)
+        Req -> funl_http_client:send(Req, Options)
     end,
-    timer:sleep(20),
+    timer:sleep(100),
     consume(Queue, Options).
         

@@ -1,4 +1,4 @@
--module(funl_retry_client).
+-module(funl_http_client).
 -include("../include/funl_request.hrl").
 -include("../include/funl_options.hrl").
 -export([send/2]).

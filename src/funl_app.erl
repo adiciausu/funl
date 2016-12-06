@@ -17,7 +17,7 @@ start(_Type, _Args) ->
 start_http_listener() ->
     Dispatch = cowboy_router:compile([
         {'_', [
-            {'_', funl_handler_enqueue, []}
+            {'_', funl_http_handler, []}
         ]}
     ]),
     {ok, _} = cowboy:start_http(http, 100, [{port, 8080}], [

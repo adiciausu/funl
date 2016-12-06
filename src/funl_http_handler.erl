@@ -1,4 +1,4 @@
--module(funl_handler_enqueue).
+-module(funl_http_handler).
 -include("../include/funl_request.hrl").
 -export([init/2]).
 

@@ -48,7 +48,7 @@ handle_call({deq}, _From, State) ->
                 IsUnlocked = UnlockTime < funl_uid:timestamp(),
                 erlang:display(IsUnlocked),
                 case IsUnlocked of
-                true ->
+                    true ->
                         ok = mnesia:delete({queue_item, Id}),
                         Item;
                     false -> []
