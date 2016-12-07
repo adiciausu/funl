@@ -8,13 +8,36 @@ send(#request{wrapped_request = WrappedReq} = Req, #options{endpoint = Endpoint,
     send(Req, Options, NewEndpoint);
 send(Req, #options{endpoint = Endpoint, route_strategy = all_to_endpoint} = Options) ->
     send(Req, Options, Endpoint).
-send(#request{wrapped_request = WrappedReq} = Req, Options, Endpoint) ->
+
+%%check if specific ttl is set
+send(#request{ttl = unset, received_at = ReceivedAt} = Req, #options{default_request_ttl = Ttl} = Options, Endpoint) ->
+    case check_ttl(ReceivedAt, Ttl) of
+        valid -> do_send(Req, Options, Endpoint);
+        expired ->
+            declare_dead(Req, default_ttl_expired)
+    end;
+send(#request{ttl = Ttl, received_at = ReceivedAt} = Req, Options, Endpoint) ->
+    case check_ttl(ReceivedAt, Ttl) of
+        valid -> do_send(Req, Options, Endpoint);
+        expired ->
+            declare_dead(Req, specific_ttl_expired)
+    end.
+
+do_send(#request{wrapped_request = WrappedReq} = Req, Options, Endpoint) ->
     erlang:display(Endpoint),
     Method = list_to_atom(string:to_lower(binary_to_list(cowboy_req:method(WrappedReq)))),
     {ok, Body, _} = cowboy_req:body(WrappedReq),
     Headers = headers(WrappedReq),
     Resp = ibrowse:send_req(Endpoint, Headers, Method, Body),
     handle_response(Resp, Req, Options).
+
+check_ttl(ReceivedAt, Ttl) ->
+    Now = funl_uid:timestamp(),
+    ExpireTime = ReceivedAt + (Ttl * 1000000),
+    case ExpireTime < Now of
+        true -> erlang:display(ExpireTime), erlang:display(Now), expired;
+        _ -> valid
+    end.
 
 headers(WrappedReq) ->
     Headers = cowboy_req:headers(WrappedReq),
@@ -35,21 +58,21 @@ handle_response({ok, "200", _Head, _Body}, Req, _Options) ->
 %% http status code error (ex: 503)
 handle_response({ok, _ErrorStatusCode, _Head, _Body}, Req, Opts) ->
     erlang:display(_ErrorStatusCode),
-    do_retry(Req, Opts);
+    requeue(Req, Opts);
 
 %% max redirects
 handle_response(_Resp, Req, Options)
     when Req#request.redirect_count >= Options#options.max_redirects ->
     WrappedReq = Req#request.wrapped_request,
     io:format("[to_many_redirects#~B] (~s)~s, will retry ~n", [Req#request.redirect_count, cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
-    do_retry(Req, Options);
+    requeue(Req, Options);
 
 %% redirect
 handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
     NewReq = Req#request{redirect_count = 1 + Req#request.redirect_count, state = redirecting},
     case (lists:keyfind("Location", 1, Head)) of
         false ->
-            do_retry(Req, Opts);
+            requeue(Req, Opts);
         {"Location", RedirectUrl} ->
             WrappedRequest = Req#request.wrapped_request,
             io:format("[Redirecting#~B] (~s)~s ... ~n ... to ~s ~n", [NewReq#request.redirect_count, cowboy_req:method(WrappedRequest), cowboy_req:url(WrappedRequest),
@@ -61,16 +84,13 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
 %% ibrowse errors
 handle_response({error, Error}, Req, Opts) ->
     erlang:display(Error),
-    do_retry(Req, Opts).
-    
+    requeue(Req, Opts).
+
 %%internal
-do_retry(#request{err_count = ErrCount, wrapped_request = WrappedReq} = Req, #options{max_errors = MaxErr}) when ErrCount == MaxErr ->
-    io:format("[to_many_errors#~B] (~s)~s, declared dead ~n", [Req#request.err_count,
-        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq)]),
-    declare_dead(Req);
-do_retry(Req, Options) ->
+requeue(#request{err_count = ErrCount} = Req, #options{max_errors = MaxErr}) when ErrCount == MaxErr ->
+    declare_dead(Req, errCount);
+requeue(Req, Options) ->
     NewErrCount = Req#request.err_count + 1,
-    
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
     Delay = calculate_delay(NewReq, Options),
     funl_timed_queue:enq(NewReq, funl_uid:timestamp() + Delay),
@@ -80,7 +100,7 @@ do_retry(Req, Options) ->
         cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), trunc(Delay / 1000000)]),
     {retrying, NewReq}.
 
-declare_dead(Req) ->
+declare_dead(#request{wrapped_request = WrappedReq}=Req, Reason) ->
     {Date, Time} = calendar:local_time(),
     {Year, Month, Day} = Date,
     {Hour, Min, Second} = Time,
@@ -88,6 +108,8 @@ declare_dead(Req) ->
     ok = filelib:ensure_dir(LogPath),
     ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p\n",
         [Year, Month, Day, Hour, Min, Second, Req]), [append]),
+    io:format("[~s] (~s)~s, declared dead! You can retreive it from ~s ~n", [Reason,
+        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), LogPath ]),
     {dead, Req#request{state = dead}}.
 
 calculate_delay(#request{err_count = ErrCount}, Options) ->
