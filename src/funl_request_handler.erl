@@ -85,8 +85,10 @@ declare_dead(Req, Resp) ->
     {Date, Time} = calendar:local_time(),
     {Year, Month, Day} = Date,
     {Hour, Min, Second} = Time,
-    file:write_file(io:fwrite("/var/log/funl/~B-~B-~B.dead.log", [Year, Month, Day]),
-        io:fwrite("~B-~B-~B ~B:~B:~B ~p ~p\n", [Year, Month, Day, Hour, Min, Second, Req, Resp]), [append, read]),
+    LogPath = lists:flatten(io_lib:fwrite("/var/log/funl/~B-~B-~B.dead.log", [Year, Month, Day])),
+    ok = filelib:ensure_dir(LogPath),
+    ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p ~p\n",
+        [Year, Month, Day, Hour, Min, Second, Req, Resp]), [append]),
     Req#request{state = dead}.
 
 calculate_delay(#request{err_count = ErrCount}, Options) ->
