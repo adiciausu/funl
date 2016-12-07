@@ -2,7 +2,7 @@
     max_errors = 100 :: non_neg_integer(),
     max_redirects = 15 :: non_neg_integer(),
     delay_factor = 5 :: non_neg_integer(),
-    request_ttl = 0 :: non_neg_integer(),
+    default_request_ttl = 0 :: non_neg_integer(),
     
     endpoint = "http://localhost:8081" :: string(),
     backend_max_req = 3 :: non_neg_integer(),

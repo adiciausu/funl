@@ -1,9 +1,9 @@
 max_redirects: 10
 max_errors: 1
 delay_factor: 1
-request_ttl: 0 #in seconds; 0=never expire,
+default_request_ttl: 0 #in seconds; 0=never expires; overriden by request X-Funl-Ttl header
 endpoint: http://requestb.in/116kf3t1
 route_strategy:  all_to_endpoint
-backend_max_req: 3 # per second
+backend_max_req: 100 # per second
 
 

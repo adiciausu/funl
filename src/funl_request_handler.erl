@@ -62,7 +62,7 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
 handle_response({error, Error}, Req, Opts) ->
     erlang:display(Error),
     do_retry(Req, Opts).
-
+    
 %%internal
 do_retry(#request{err_count = ErrCount, wrapped_request = WrappedReq} = Req, #options{max_errors = MaxErr}) when ErrCount == MaxErr ->
     io:format("[to_many_errors#~B] (~s)~s, declared dead ~n", [Req#request.err_count,
