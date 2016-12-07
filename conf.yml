@@ -1,6 +1,7 @@
 max_redirects: 10
-max_errors: 100
-delay_factor: 5
-endpoint: http://requestb.in/vgtkocvg
+max_errors: 1
+delay_factor: 2
+backend_max_req_per_sec: 3
+endpoint: http://requestb.in/vgtkocv
 route_strategy:  all_to_endpoint
 

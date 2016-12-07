@@ -23,7 +23,6 @@ enq(Req, UnlockTime) ->
     gen_server:call(?MODULE, {enq, Req, UnlockTime}).
 deq() ->
     gen_server:call(?MODULE, {deq}).
-
 init([]) ->
     {atomic, ok} = mnesia:create_table(queue_item, [
         {ram_copies, [node()]},

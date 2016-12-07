@@ -33,8 +33,9 @@ code_change(_OldVsn, State, _Extra) ->
 consume(Queue, Options) ->
     case funl_timed_queue:deq() of
         [] -> ok;
-        Req -> funl_http_client:send(Req, Options)
+        Req -> funl_request_handler:send(Req, Options)
     end,
-    timer:sleep(100),
+    #options{backend_max_req_per_sec = MaxReqS} = Options,
+    timer:sleep(1000 div MaxReqS),
     consume(Queue, Options).
         
