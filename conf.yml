@@ -1,7 +1,9 @@
 max_redirects: 10
 max_errors: 1
 delay_factor: 1
-backend_max_req_per_sec: 3
-endpoint: http://requestb.in/vgtkocv
+request_ttl: 0 #in seconds; 0=never expire,
+endpoint: http://requestb.in/116kf3t1
 route_strategy:  all_to_endpoint
+backend_max_req: 3 # per second
+
 

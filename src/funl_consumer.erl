@@ -35,7 +35,7 @@ consume(Queue, Options) ->
         [] -> ok;
         Req -> funl_request_handler:send(Req, Options)
     end,
-    #options{backend_max_req_per_sec = MaxReqS} = Options,
+    #options{backend_max_req = MaxReqS} = Options,
     timer:sleep(1000 div MaxReqS),
     consume(Queue, Options).
         
