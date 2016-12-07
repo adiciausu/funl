@@ -100,7 +100,7 @@ requeue(Req, Options) ->
         cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), trunc(Delay / 1000000)]),
     {retrying, NewReq}.
 
-declare_dead(#request{wrapped_request = WrappedReq}=Req, Reason) ->
+declare_dead(#request{wrapped_request = WrappedReq} = Req, Reason) ->
     {Date, Time} = calendar:local_time(),
     {Year, Month, Day} = Date,
     {Hour, Min, Second} = Time,
@@ -109,8 +109,12 @@ declare_dead(#request{wrapped_request = WrappedReq}=Req, Reason) ->
     ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p\n",
         [Year, Month, Day, Hour, Min, Second, Req]), [append]),
     io:format("[~s] (~s)~s, declared dead! You can retreive it from ~s ~n", [Reason,
-        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), LogPath ]),
+        cowboy_req:method(WrappedReq), cowboy_req:url(WrappedReq), LogPath]),
     {dead, Req#request{state = dead}}.
 
 calculate_delay(#request{err_count = ErrCount}, Options) ->
-    1000000 * trunc(math:pow(Options#options.delay_factor, ErrCount)).
+    Timeunit = 1000000,
+    Random = rand:uniform(),
+    Random2 = rand:uniform(),
+    FinalRand = (Random - Random2) * Timeunit / 10,
+    (Timeunit + FinalRand) * trunc(math:pow(Options#options.delay_factor, ErrCount)).
