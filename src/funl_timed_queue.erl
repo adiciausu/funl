@@ -20,7 +20,6 @@ start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 enq(Req, UnlockTime) ->
-    erlang:display(Req),
     gen_server:call(?MODULE, {enq, Req, UnlockTime}).
 deq() ->
     gen_server:call(?MODULE, {deq}).

@@ -35,7 +35,7 @@ check_ttl(ReceivedAt, Ttl) ->
     Now = funl_uid:timestamp(),
     ExpireTime = ReceivedAt + (Ttl * 1000000),
     case ExpireTime < Now of
-        true -> erlang:display(ExpireTime), erlang:display(Now), expired;
+        true -> expired;
         _ -> valid
     end.
 

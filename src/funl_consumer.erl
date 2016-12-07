@@ -29,7 +29,7 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-%%    MUST REFACTOR THIS
+%%    must find a more optimized way
 consume(Queue, Options) ->
     case funl_timed_queue:deq() of
         [] -> ok;
