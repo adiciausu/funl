@@ -32,11 +32,8 @@ init([]) ->
     {ok, #state{}}.
 
 handle_call({enq, Item, UnlockTime}, _From, State) ->
-    T = fun() ->
-        QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), next_iteration = UnlockTime, item = Item},
-        mnesia:write(QueuedItem)
-        end,
-    mnesia:transaction(T),
+    QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), next_iteration = UnlockTime, item = Item},
+    ok = mnesia:dirty_write(QueuedItem),
     {reply, sucess, State};
 
 handle_call({deq}, _From, State) ->
