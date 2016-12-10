@@ -20,15 +20,15 @@ enq(Req, UnlockTime) ->
 deq() ->
     gen_server:call(?MODULE, {deq}).
 init([]) ->
-    ok = funl_timed_queue:start({disc_copies, [node()]}),
+    ok = funl_mnesia_queue:start({mem_and_disk, [node()]}),
     {ok, #state{}}.
 
 handle_call({enq, Item, UnlockTime}, _From, State) ->
-    ok = funl_timed_queue:enq(Item, UnlockTime),
+    ok = funl_mnesia_queue:enq(Item, UnlockTime),
     {reply, sucess, State};
 
 handle_call({deq}, _From, State) ->
-    Data = funl_timed_queue:deq(),
+    Data = funl_mnesia_queue:deq(),
     {reply, Data, State};
 
 handle_call(_Msg, _From, State) ->

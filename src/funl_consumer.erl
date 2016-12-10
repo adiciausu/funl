@@ -31,7 +31,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 %%    must find a more optimized way
 consume(Queue, Options) ->
-    case funl_timed_queue:deq() of
+    case funl_queue:deq() of
         [] -> ok;
         Req -> funl_request_handler:send(Req, Options)
     end,

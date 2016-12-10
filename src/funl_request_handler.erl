@@ -93,7 +93,7 @@ requeue(Req, Options) ->
     NewErrCount = Req#request.err_count + 1,
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
     Delay = calculate_delay(NewReq, Options),
-    funl_timed_queue:enq(NewReq, funl_uid:timestamp() + Delay),
+    funl_queue:enq(NewReq, funl_uid:timestamp() + Delay),
     
     WrappedReq = Req#request.wrapped_request,
     io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,

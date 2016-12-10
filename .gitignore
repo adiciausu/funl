@@ -8,6 +8,9 @@ erl_crash.dump
 ebin
 .concrete/DEV_MODE
 
+#mnesia
+Mnesia.nonode@nohost/
+
 #rebar
 _build/
 rebar.lock

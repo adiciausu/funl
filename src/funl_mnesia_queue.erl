@@ -1,8 +1,8 @@
--module(funl_timed_queue).
+-module(funl_mnesia_queue).
 -include("../include/funl_queue_item.hrl").
 -export([enq/2, deq/0, start/1]).
 
-start({disc_copies, DiskCopies}) ->
+start({mem_and_disk, DiskCopies}) ->
     ok = case mnesia:create_table(queue_item, [
         {disc_copies, DiskCopies},
         {type, ordered_set},
