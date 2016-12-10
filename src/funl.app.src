@@ -9,10 +9,10 @@
   {applications,
    [kernel,
     stdlib,
-    mnesia,
     cowboy,
     ibrowse,
-    yamerl
+    yamerl,
+    mnesia
    ]},
   {env,[]},
   %% All modules used by the application.

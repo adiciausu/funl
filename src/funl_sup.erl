@@ -12,7 +12,7 @@ start_link(Options) ->
 %% supervisor.
 init([Options]) ->
     Procs = [
-        {funl_queue, {funl_timed_queue, start_link, []},
+        {funl_queue, {funl_queue, start_link, []},
             permanent, 5000, worker, [funl_queue]},
         {funl_consumer, {funl_consumer, start_link, [Options, request]},
             permanent, 5000, worker, [funl_consumer]}
