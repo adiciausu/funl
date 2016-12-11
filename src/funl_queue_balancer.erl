@@ -1,5 +1,6 @@
 -module(funl_queue_balancer).
 -include("../include/funl_queue_item.hrl").
+-include("../include/funl_request.hrl").
 -include("../include/funl_options.hrl").
 -behaviour(gen_server).
 
@@ -27,12 +28,13 @@ init([Options]) ->
     Timer = erlang:send_after(1, self(), balance),
     {ok, #state{options = Options, timer = Timer, delay = 1000 * NextRoundDelay}}.
 
-handle_info(balance, #state{options = #options{requst_queue_buffer_size = BufferSizeMins, backend_max_req = MaxReq} = Options,
+handle_info(balance, #state{options = #options{requst_queue_buffer_size = BufferSizeMins, backend_max_req = MaxReq},
     timer = Timer, delay = Delay} = State) ->
     erlang:cancel_timer(Timer),
     Size = funl_mnesia_queue:size(),
-    MaxSize = MaxReq * 3600 * BufferSizeMins,
+    MaxSize = MaxReq * 60 * BufferSizeMins,
     Count = Size - MaxSize,
+    io:format("[Balancer] count ~B~n", [Count]),
     ok = do_balance(Count),
     NewTimer = erlang:send_after(Delay, self(), balance),
     {noreply, State#state{timer = NewTimer}};
@@ -51,7 +53,7 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 calculate_delay(#options{requst_queue_buffer_size = BufferSizeMins, requst_queue_balance_allowed_margin = Margin}) ->
-    BufferSizeMins div Margin.
+    (BufferSizeMins * 60) div Margin.
 
 do_balance(Count) when Count > 0 ->
     Items = funl_mnesia_queue:rev_deq(Count),
@@ -61,10 +63,18 @@ do_balance(Count) when Count < 0 ->
     FileRowCount = Count * -1,
     QueueItems = funl_disk_queue:deq(FileRowCount),
     case length(QueueItems) > 0 of
-        true -> io:format("Dequed ~B items from disk~n", [length(QueueItems)]);
+        true ->
+            memory_bulk_enq(QueueItems),
+            io:format("Dequed ~B items from disk~n", [length(QueueItems)]);
         false -> ok
     end,
     ok;
 do_balance(Count) when Count == 0 ->
     io:format("Nothing to balance~n"),
     ok.
+
+memory_bulk_enq([]) ->
+    ok;
+memory_bulk_enq([#queue_item{next_iteration = NextIter, item = WrappedItem} | Items]) ->
+    ok = funl_mnesia_queue:enq(WrappedItem, NextIter),
+    memory_bulk_enq(Items).
