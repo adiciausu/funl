@@ -29,7 +29,7 @@ handle_info(consume, #state{timer = Timer, delay = Delay, options = Options} = S
     erlang:cancel_timer(Timer),
     case funl_queue:deq() of
         [] ->
-            io:format("Queue empty~n"),
+            io:format("[Consumer] Queue empty~n"),
             ok;
         Req ->
             funl_request_handler:send(Req, Options)

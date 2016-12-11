@@ -24,7 +24,6 @@ send(#request{ttl = Ttl, received_at = ReceivedAt} = Req, Options, Endpoint) ->
     end.
 
 do_send(#request{method = Method, body = Body, headers = Headers} = Req, Options, Endpoint) ->
-    erlang:display(Endpoint),
     Resp = ibrowse:send_req(Endpoint, Headers, Method, Body),
     handle_response(Resp, Req, Options).
 
@@ -38,12 +37,11 @@ check_ttl(ReceivedAt, Ttl) ->
 
 %%Ok
 handle_response({ok, "200", _Head, _Body}, #request{method = Method, relative_url = RelativeUrl} = Req, _Options) ->
-    io:format("[Done] (~s)~s ~n", [Method, RelativeUrl]),
+    io:format("[Handler] [Done] (~s)~s ~n", [Method, RelativeUrl]),
     {done, Req#request{state = done}};
 
 %% http status code error (ex: 503)
 handle_response({ok, _ErrorStatusCode, _Head, _Body}, Req, Opts) ->
-    erlang:display(_ErrorStatusCode),
     requeue(Req, Opts);
 
 %% max redirects
@@ -79,7 +77,7 @@ requeue(Req, Options) ->
     Delay = calculate_delay(NewReq, Options),
     funl_queue:enq(NewReq, funl_uid:timestamp() + Delay),
     
-    io:format("[Retrying#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
+    io:format("[Handler] [Requed#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
         NewReq#request.method, NewReq#request.relative_url, trunc(Delay / 1000000)]),
     {retrying, NewReq}.
 
@@ -91,7 +89,7 @@ declare_dead(#request{method = Method, relative_url = RelativeUrl} = Req, Reason
     ok = filelib:ensure_dir(LogPath),
     ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p\n",
         [Year, Month, Day, Hour, Min, Second, Req]), [append]),
-    io:format("[~s] (~s)~s, declared dead! You can retreive it from ~s ~n", [Reason,
+    io:format("[Handler] [~s] (~s)~s, declared dead! You can retreive it from ~s ~n", [Reason,
         Method, RelativeUrl, LogPath]),
     {dead, Req#request{state = dead}}.
 

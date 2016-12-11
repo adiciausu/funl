@@ -33,7 +33,6 @@ handle_info(balance, #state{options = #options{requst_queue_buffer_size = Buffer
     Size = funl_mnesia_queue:size(),
     MaxSize = MaxReq * 3600 * BufferSizeMins,
     Count = Size - MaxSize,
-    erlang:display(Count),
     ok = do_balance(Count),
     NewTimer = erlang:send_after(Delay, self(), balance),
     {noreply, State#state{timer = NewTimer}};
@@ -61,7 +60,11 @@ do_balance(Count) when Count > 0 ->
 do_balance(Count) when Count < 0 ->
     FileRowCount = Count * -1,
     QueueItems = funl_disk_queue:deq(FileRowCount),
-    io:format("Dequed ~B items from disk~n", [length(QueueItems)]),
+    case length(QueueItems) > 0 of
+        true -> io:format("Dequed ~B items from disk~n", [length(QueueItems)]);
+        false -> ok
+    end,
     ok;
 do_balance(Count) when Count == 0 ->
+    io:format("Nothing to balance~n"),
     ok.
