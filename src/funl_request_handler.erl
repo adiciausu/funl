@@ -39,17 +39,11 @@ check_ttl(ReceivedAt, Ttl) ->
 handle_response({ok, "200", _Head, _Body}, #request{method = Method, relative_url = RelativeUrl} = Req, _Options) ->
     io:format("[Handler] [Done] (~s)~s ~n", [Method, RelativeUrl]),
     {done, Req#request{state = done}};
-
-%% http status code error (ex: 503)
-handle_response({ok, _ErrorStatusCode, _Head, _Body}, Req, Opts) ->
-    requeue(Req, Opts);
-
 %% max redirects
 handle_response(_Resp, #request{redirect_count = RedirectCount, method = Method, relative_url = RelativeUrl} = Req, Options)
     when Req#request.redirect_count >= Options#options.max_redirects ->
     io:format("[to_many_redirects#~B] (~s)~s, will retry ~n", [RedirectCount, Method, RelativeUrl]),
     requeue(Req, Options);
-
 %% redirect
 handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
     NewReq = Req#request{redirect_count = 1 + Req#request.redirect_count, state = redirecting},
@@ -62,13 +56,19 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
             send(NewReq, Opts, RedirectUrl),
             {done, Req}
     end;
-
+%% http status code error (ex: 503)
+handle_response({ok, StatusCode, _Head, _Body}, Req, #options{dead_status_codes = DeadStatusCodes} = Opts) ->
+    erlang:display(DeadStatusCodes),
+    case lists:member(StatusCode, DeadStatusCodes) of
+        true-> declare_dead(Req, list_to_atom(StatusCode));
+        false ->requeue(Req, Opts)
+    end;
 %% ibrowse errors
 handle_response({error, Error}, Req, Opts) ->
     erlang:display(Error),
     requeue(Req, Opts).
 
-%%internal
+
 requeue(#request{err_count = ErrCount} = Req, #options{max_errors = MaxErr}) when ErrCount == MaxErr ->
     declare_dead(Req, errCount);
 requeue(Req, Options) ->

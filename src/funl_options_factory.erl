@@ -17,7 +17,8 @@ create_from_list([{Key, Value} | Rest], Options) ->
     "route_strategy" -> Options2 = Options#options{route_strategy = list_to_atom(Value)};
     "delay_factor" -> Options2 = Options#options{delay_factor = Value};
     "backend_max_req" -> Options2 = Options#options{backend_max_req = Value};
-    "default_request_ttl" -> Options2 = Options#options{default_request_ttl = Value}
+    "default_request_ttl" -> Options2 = Options#options{default_request_ttl = Value};
+    "dead_status_codes" -> Options2 = Options#options{dead_status_codes = Value}
   end,
   create_from_list(Rest, Options2);
 
