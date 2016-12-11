@@ -58,7 +58,6 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
     end;
 %% http status code error (ex: 503)
 handle_response({ok, StatusCode, _Head, _Body}, Req, #options{dead_status_codes = DeadStatusCodes} = Opts) ->
-    erlang:display(DeadStatusCodes),
     case lists:member(StatusCode, DeadStatusCodes) of
         true-> declare_dead(Req, list_to_atom(StatusCode));
         false ->requeue(Req, Opts)
