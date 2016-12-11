@@ -2,7 +2,6 @@
 -define(DiskFile, "priv/disk_buffer.data").
 -define(TmpDiskFile, "priv/disk_buffer_tmp.data").
 -define(NewLineToken, "__NEW_LINE__").
-
 -export([enq/1, deq/1]).
 
 enq(Items) ->
@@ -55,7 +54,7 @@ do_deq(IoDevice, Count) when Count =< 0 ->
             ok = file:write(TmpIoDevice, io_lib:fwrite("~s", [QueueItem])),
             do_deq(IoDevice, 0, TmpIoDevice)
     end.
-do_deq(IoDevice, _, TmpIoDevice) ->
+do_deq(IoDevice, 0, TmpIoDevice) ->
     case io:get_line(IoDevice, "") of
         eof ->
             ok = file:close(TmpIoDevice),
