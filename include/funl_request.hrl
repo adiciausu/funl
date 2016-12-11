@@ -4,5 +4,9 @@
     redirect_count = 0 :: non_neg_integer(),
     ttl = unset :: non_neg_integer() | unset,
     state = pending :: pending | redirecting | retrying | done | dead,
-    wrapped_request :: tuple()
+    
+    headers :: list(),
+    body :: string(),
+    method :: get | post | delete | put | options,
+    relative_url :: string()
 }).

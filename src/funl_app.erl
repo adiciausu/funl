@@ -5,7 +5,6 @@
 -export([start/2, stop/1]).
 
 %% API.
-
 start(_Type, _Args) ->
     Options = funl_options_factory:create_from_file("/Users/adi/dev/erlang/funl/conf.yml"),
     io:format("Loaded config: ~p~n", [Options]),

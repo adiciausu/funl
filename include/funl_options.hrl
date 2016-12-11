@@ -10,7 +10,7 @@
     
 %%  private, can't be changed by config
     %%in mins, how much requests time processing should i buffer, based on backend_max_req
-    requst_queue_buffer_size = 15 ::non_neg_integer(),
+    requst_queue_buffer_size = 2 ::non_neg_integer(),
     %% how many times can i fail and still have requests queued in memory, if the are any to process
-    requst_queue_balance_allowed_margin = 3 ::non_neg_integer()
+    requst_queue_balance_allowed_margin = 1 ::non_neg_integer()
 }).

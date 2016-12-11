@@ -14,7 +14,9 @@ init([Options]) ->
     Procs = [
         {funl_queue, {funl_queue, start_link, []},
             permanent, 5000, worker, [funl_queue]},
-        {funl_consumer, {funl_consumer, start_link, [Options, request]},
+        {funl_queue_balancer, {funl_queue_balancer, start_link, [Options]},
+            permanent, 5000, worker, [funl_queue_balancer]},
+        {funl_consumer, {funl_consumer, start_link, [Options]},
             permanent, 5000, worker, [funl_consumer]}
     ],
     

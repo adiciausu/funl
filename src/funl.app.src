@@ -1,24 +1,24 @@
 {application, funl,
- [{description, "An OTP application"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {mod, { funl_app, []}},
-  %% Applications that are to be started prior to this one. This can be ignored
-  %% leave it alone unless you understand it well and let the .rel files in
-  %% your release handle this.
-  {applications,
-   [kernel,
-    stdlib,
-    cowboy,
-    ibrowse,
-    yamerl,
-    mnesia
-   ]},
-  {env,[]},
-  %% All modules used by the application.
-  {modules, []},
-
-  {maintainers, []},
-  {licenses, []},
-  {links, []}
- ]}.
+    [{description, "An OTP application"},
+        {vsn, "0.1.0"},
+        {registered, []},
+        {mod, {funl_app, []}},
+        %% Applications that are to be started prior to this one. This can be ignored
+        %% leave it alone unless you understand it well and let the .rel files in
+        %% your release handle this.
+        {applications,
+            [kernel,
+                stdlib,
+                cowboy,
+                ibrowse,
+                yamerl,
+                mnesia
+            ]},
+        {env, []},
+        %% All modules used by the application.
+        {modules, []},
+        
+        {maintainers, []},
+        {licenses, []},
+        {links, []}
+    ]}.

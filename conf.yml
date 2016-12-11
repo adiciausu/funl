@@ -4,6 +4,6 @@ delay_factor: 3 #next_delay = pow(delay_factor, current_error_count) + or - 1%
 default_request_ttl: 10000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
 endpoint: http://requestb.in/116kf3t1
 route_strategy:  all_to_endpoint
-backend_max_req: 100 # per second
+backend_max_req: 1 # per second
 
 
