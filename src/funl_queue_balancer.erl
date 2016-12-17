@@ -3,9 +3,9 @@
 -include("../include/funl_request.hrl").
 -include("../include/funl_options.hrl").
 -behaviour(gen_server).
--define(batchSize, 1000). %request number
+-define(BatchPercent, 10). %move 10% of requests to disk
 -define(delay, 1). %seconds
--define(maxMemory, 1000000000). %bytes
+-define(maxMemory, 10000000). %bytes
 
 %% API
 -export([start_link/1]).
@@ -53,10 +53,11 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 do_balance(Available) when Available < 0 ->
-    Items = funl_mnesia_queue:rev_deq(?batchSize),
+    BatchSize = round(funl_mnesia_queue:count() / ?BatchPercent),
+    Items = funl_mnesia_queue:rev_deq(BatchSize),
     io:format("Queued ~B items to disk~n", [length(Items)]),
     ok = funl_disk_queue:enq(Items);
-do_balance(Available) when Available > 0 ->
+do_balance(Available) when Available > ?maxMemory * ?BatchPercent / 100 ->
     QueueItems = funl_disk_queue:deq(),
     case length(QueueItems) > 0 of
         true ->
@@ -65,7 +66,7 @@ do_balance(Available) when Available > 0 ->
         false -> ok
     end,
     ok;
-do_balance(Count) when Count == 0 ->
+do_balance(_Count) ->
     io:format("Nothing to balance~n"),
     ok.
 

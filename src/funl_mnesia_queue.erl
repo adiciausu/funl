@@ -1,7 +1,7 @@
 -module(funl_mnesia_queue).
 -include("../include/funl_queue_item.hrl").
 -include_lib("stdlib/include/qlc.hrl").
--export([enq/2, deq/0, start/1, size/0, rev_deq/1]).
+-export([enq/2, deq/0, start/1, size/0, count/0, rev_deq/1]).
 
 start({mem_and_disk, DiskCopies}) ->
     ok = case mnesia:create_table(queue_item, [
@@ -35,6 +35,9 @@ deq() ->
 
 size() ->
     mnesia:table_info(queue_item, memory).
+
+count() ->
+    mnesia:table_info(queue_item, size).
 
 rev_deq(Count) ->
     T = fun() ->
