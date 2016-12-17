@@ -1,67 +1,44 @@
 -module(funl_disk_queue).
--define(DiskFile, "priv/disk_buffer.data").
--define(TmpDiskFile, "priv/disk_buffer_tmp.data").
+-define(DiskFile, "data/disk_buffer_~B.data").
+-define(DataFolder, "data/").
 -define(NewLineToken, "__NEW_LINE__").
--export([enq/1, deq/1]).
+-export([enq/1, deq/0]).
 
 enq(Items) ->
-    ok = filelib:ensure_dir(?DiskFile),
-    {ok, BufferIoDevice} = file:open(?DiskFile, [append]),
-    enq(Items, BufferIoDevice).
+    File = io_lib:fwrite(?DiskFile,[ funl_uid:timestamp()]),
+    ok = filelib:ensure_dir(File),
+    {ok, BufferIoDevice} = file:open(File, [append]),
+    ok = enq(Items, BufferIoDevice),
+    file:close(BufferIoDevice).
 
-enq([], BufferIoDevice) ->
-    file:close(BufferIoDevice),
+enq([], _) ->
     ok;
 enq([Item | Rest], BufferIoDevice) ->
     BinaryItem = serialize(Item),
     ok = file:write(BufferIoDevice, io_lib:fwrite("~s~n", [BinaryItem])),
     enq(Rest, BufferIoDevice).
 
-deq(Count) ->
-    case filelib:is_file(?DiskFile) of
-        true -> deq(?DiskFile, Count);
-        false -> []
-    end.
-deq(FileName, Count) ->
-    {ok, IoDevice} = file:open(FileName, read),
-    Items = do_deq(IoDevice, Count),
+deq() ->
+    ok = filelib:ensure_dir(?DataFolder),
+    {ok, Filenames} = file:list_dir(?DataFolder),
+    deq(Filenames).
+
+deq([]) ->
+    [];
+deq([Filename | _]) ->
+    ok = filelib:ensure_dir(?DataFolder),
+    Path = string:concat(?DataFolder, Filename),
+    {ok, IoDevice} = file:open(Path, read),
+    Items = do_deq(IoDevice),
     file:close(IoDevice),
-    case (length(Items) < Count) of
-        true -> erlang:display(length(Items)), erlang:display(Count), file:delete(FileName);
-        false -> ok
-    end,
-    case filelib:is_file(?TmpDiskFile) of %% get records saved in tmp file (if any)
-        true ->
-            file:delete(FileName),
-            ok = file:rename(?TmpDiskFile, FileName);
-        false ->
-            ok
-    end,
+    ok = file:delete(Path),
     Items.
 
-do_deq(IoDevice, Count) when Count > 0 ->
+do_deq(IoDevice)->
     case io:get_line(IoDevice, "") of
         eof -> [];
         QueueItem ->
-            lists:append([deserialize(QueueItem)], do_deq(IoDevice, Count - 1))
-    end;
-do_deq(IoDevice, Count) when Count =< 0 ->
-    case io:get_line(IoDevice, "") of
-        eof -> [];
-        QueueItem ->
-            ok = filelib:ensure_dir(?TmpDiskFile), %% write extra records to tmp file
-            {ok, TmpIoDevice} = file:open(?TmpDiskFile, [append]),
-            ok = file:write(TmpIoDevice, io_lib:fwrite("~s", [QueueItem])),
-            do_deq(IoDevice, 0, TmpIoDevice)
-    end.
-do_deq(IoDevice, 0, TmpIoDevice) ->
-    case io:get_line(IoDevice, "") of
-        eof ->
-            ok = file:close(TmpIoDevice),
-            [];
-        QueueItem ->
-            ok = file:write(TmpIoDevice, io_lib:fwrite("~s", [QueueItem])),
-            do_deq(IoDevice, 0, TmpIoDevice)
+            lists:append([deserialize(QueueItem)], do_deq(IoDevice))
     end.
 
 deserialize(Item) ->

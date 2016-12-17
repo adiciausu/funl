@@ -34,7 +34,7 @@ deq() ->
     Data.
 
 size() ->
-    mnesia:table_info(queue_item, size).
+    mnesia:table_info(queue_item, memory).
 
 rev_deq(Count) ->
     T = fun() ->
