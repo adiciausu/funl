@@ -1,5 +1,5 @@
 {application, funl,
-    [{description, "An OTP application"},
+    [{description, "Async http proxy designed for high throughput and transient error handling"},
         {vsn, "0.1.0"},
         {registered, []},
         {mod, {funl_app, []}},
