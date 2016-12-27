@@ -9,8 +9,7 @@ start({mem_and_disk, DiscCopies}) ->
     ok = case mnesia:create_table(queue_item, [
         {disc_copies, DiscCopies},
         {type, ordered_set},
-        {attributes, record_info(fields, queue_item)},
-        {storage_properties, [{ets, [compressed]}, {dets, [{auto_save, 1000}]}]} ]) of
+        {attributes, record_info(fields, queue_item)} ]) of
              {atomic, ok} -> ok;
              {aborted, {already_exists, _Tab}} -> ok
          end,
