@@ -18,7 +18,13 @@ create_from_list([{Key, Value} | Rest], Options) ->
     "delay_factor" -> Options2 = Options#options{delay_factor = Value};
     "backend_max_req" -> Options2 = Options#options{backend_max_req = Value};
     "default_request_ttl" -> Options2 = Options#options{default_request_ttl = Value};
-    "dead_status_codes" -> Options2 = Options#options{dead_status_codes = Value}
+    "dead_status_codes" -> Options2 = Options#options{dead_status_codes = Value};
+    "alert_queued_requests_max_count" -> Options2 = Options#options{alert_queued_requests_max_count = Value};
+    "alert_email_receiver" -> Options2 = Options#options{alert_email_receiver = Value};
+    "alert_email_relay" -> Options2 = Options#options{alert_email_relay = Value};
+    "alert_email_username" -> Options2 = Options#options{alert_email_username = Value};
+    "alert_email_password" -> Options2 = Options#options{alert_email_password = Value};
+    "alert_email_ssl" -> Options2 = Options#options{alert_email_ssl = Value}
   end,
   create_from_list(Rest, Options2);
 

@@ -1,6 +1,6 @@
 -module(funl_disk_queue).
--define(DiskFile, "data/queue/disk_buffer_~B.data").
 -define(DataFolder, "data/queue/").
+-define(DiskFile, ?DataFolder + "disk_buffer_~B.data").
 -define(NewLineToken, "__NEW_LINE__").
 -export([enq/1, deq/0]).
 

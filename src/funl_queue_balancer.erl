@@ -30,8 +30,9 @@ init([Options]) ->
     Timer = erlang:send_after(1, self(), balance),
     {ok, #state{options = Options, timer = Timer, delay = 1000 * ?delay}}.
 
-handle_info(balance, #state{timer = Timer, delay = Delay} = State) ->
+handle_info(balance, #state{timer = Timer, delay = Delay, options = Options} = State) ->
     erlang:cancel_timer(Timer),
+    funl_alert:check_max_queued_req(Options),
     Size = funl_mnesia_queue:size() * erlang:system_info(wordsize),
     Free = ?maxMemory - Size,
     io:format("[Balancer] Memory buffer free size ~f Mb ~n", [Free / 1000000]),

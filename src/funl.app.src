@@ -11,13 +11,14 @@
                 stdlib,
                 cowboy,
                 ibrowse,
-                yamerl
+                yamerl,
+                gen_smtp
             ]},
         {env, []},
         %% All modules used by the application.
         {modules, []},
         
         {maintainers, []},
-        {licenses, []},
-        {links, []}
+        {licenses, ["Adi Ciausu"]},
+        {links,[{"GitHub","https://github.com/adrianciausu/funl"}]}
     ]}.

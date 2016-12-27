@@ -5,6 +5,13 @@
     default_request_ttl = 0 :: non_neg_integer(),
     dead_status_codes = [] :: list(),
     
+    alert_email_receiver ::string(),
+    alert_email_relay ::string(),
+    alert_email_username ::string(),
+    alert_email_password :: string(),
+    alert_email_ssl = false ::boolean(),
+    alert_queued_requests_max_count = 1000 :: non_neg_integer(),
+    
     endpoint = "http://localhost:8081" :: string(),
     backend_max_req = 3 :: non_neg_integer(),
     route_strategy = all_paths_relative_to_enpoint :: all_to_endpoint | all_paths_relative_to_enpoint
