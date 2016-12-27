@@ -84,7 +84,7 @@ declare_dead(#request{method = Method, relative_url = RelativeUrl} = Req, Reason
     {Date, Time} = calendar:local_time(),
     {Year, Month, Day} = Date,
     {Hour, Min, Second} = Time,
-    LogPath = lists:flatten(io_lib:fwrite("/var/log/funl/~B-~B-~B.dead.log", [Year, Month, Day])),
+    LogPath = lists:flatten(io_lib:fwrite("log/~B-~B-~B.dead.log", [Year, Month, Day])),
     ok = filelib:ensure_dir(LogPath),
     ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p\n",
         [Year, Month, Day, Hour, Min, Second, Req]), [append]),
