@@ -8,10 +8,10 @@ endpoint: http://requestb.in/13k1a101
 route_strategy:  all_to_endpoint
 backend_max_req: 1 # per second
 
-alert_email_receiver: adrian.ciausu@gmail.com
+alert_email_receiver: example@domain.com
 alert_email_relay: smtp.gmail.com
-alert_email_username: adrian.ciausu@gmail.com
-alert_email_password: nicinumagandesc
+alert_email_username: example@domain.com
+alert_email_password: notasecret
 alert_email_ssl: true # required for smtp.gmail.com
 alert_queued_requests_max_count: 100000
 
