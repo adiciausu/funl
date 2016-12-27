@@ -8,21 +8,16 @@ erl_crash.dump
 ebin
 .concrete/DEV_MODE
 
-#mnesia
-Mnesia.nonode@nohost/
-
-#rebar
-_build/
+#rebar / build
 rebar.lock
 .rebar
-
-
-#build
 out/
-
+_build/
 
 #intellijideea
 .idea/
 funl.iml
 
+#app
 data/
+Mnesia.nonode@nohost/

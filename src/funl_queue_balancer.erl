@@ -4,8 +4,8 @@
 -include("../include/funl_options.hrl").
 -behaviour(gen_server).
 -define(BatchPercent, 10). %move 10% of requests to disk
--define(delay, 1). %seconds
--define(maxMemory, 10000000). %bytes
+-define(delay, 10). %seconds
+-define(maxMemory, 1000000000). %bytes
 
 %% API
 -export([start_link/1]).

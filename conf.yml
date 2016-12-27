@@ -1,7 +1,7 @@
 max_redirects: 10
 max_errors: 25
 delay_factor: 4 #next_delay = pow(delay_factor, current_error_count) + or - 1%
-dead_status_codes: [ "404" ]
+dead_status_codes: [ "405" ]
 
 default_request_ttl: 1000000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
 endpoint: http://requestb.in/13k1a101

@@ -3,14 +3,18 @@
 -include_lib("stdlib/include/qlc.hrl").
 -export([enq/2, deq/0, start/1, size/0, count/0, rev_deq/1]).
 
-start({mem_and_disk, DiskCopies}) ->
+start({mem_and_disk, DiscCopies}) ->
+    mnesia:create_schema(DiscCopies),
+    mnesia:start(),
     ok = case mnesia:create_table(queue_item, [
-        {disc_copies, DiskCopies},
+        {disc_copies, DiscCopies},
         {type, ordered_set},
-        {attributes, record_info(fields, queue_item)}]) of
+        {attributes, record_info(fields, queue_item)},
+        {storage_properties, [{ets, [compressed]}, {dets, [{auto_save, 1000}]}]} ]) of
              {atomic, ok} -> ok;
              {aborted, {already_exists, _Tab}} -> ok
-         end.
+         end,
+        mnesia:wait_for_tables([queue_item], 30000).
 
 enq(Item, UnlockTime) ->
     QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), next_iteration = UnlockTime, item = Item},

@@ -11,8 +11,7 @@
                 stdlib,
                 cowboy,
                 ibrowse,
-                yamerl,
-                mnesia
+                yamerl
             ]},
         {env, []},
         %% All modules used by the application.
