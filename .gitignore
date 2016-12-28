@@ -20,4 +20,5 @@ funl.iml
 
 #app
 data/
+log/
 Mnesia.nonode@nohost/

@@ -12,7 +12,8 @@
                 cowboy,
                 ibrowse,
                 yamerl,
-                gen_smtp
+                gen_smtp,
+                lager
             ]},
         {env, []},
         %% All modules used by the application.

@@ -37,12 +37,12 @@ check_ttl(ReceivedAt, Ttl) ->
 
 %%Ok
 handle_response({ok, "200", _Head, _Body}, #request{method = Method, relative_url = RelativeUrl} = Req, _Options) ->
-    io:format("[Handler] [Done] (~s)~s ~n", [Method, RelativeUrl]),
+    lager:info("[Handler] [Done] (~s)~s ", [Method, RelativeUrl]),
     {done, Req#request{state = done}};
 %% max redirects
 handle_response(_Resp, #request{redirect_count = RedirectCount, method = Method, relative_url = RelativeUrl} = Req, Options)
     when Req#request.redirect_count >= Options#options.max_redirects ->
-    io:format("[to_many_redirects#~B] (~s)~s, will retry ~n", [RedirectCount, Method, RelativeUrl]),
+    lager:info("[to_many_redirects#~B] (~s)~s, will retry ", [RedirectCount, Method, RelativeUrl]),
     requeue(Req, Options);
 %% redirect
 handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCode; "302" == StatusCode ->
@@ -51,7 +51,7 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
         false ->
            declare_dead(NewReq, redirect_no_location, Opts);
         {"Location", RedirectUrl} ->
-            io:format("[Redirecting#~B] (~s)~s ... ~n ... to ~s ~n",
+            lager:info("[Redirecting#~B] (~s)~s ... ~n ... to ~s ",
                 [NewReq#request.redirect_count, NewReq#request.method, NewReq#request.relative_url, RedirectUrl]),
             send(NewReq, Opts, RedirectUrl),
             {done, Req}
@@ -76,7 +76,7 @@ requeue(Req, Options) ->
     Delay = calculate_delay(NewReq, Options),
     funl_queue:enq(NewReq, funl_uid:timestamp() + Delay),
     
-    io:format("[Handler] [Requed#~B] (~s)~s -> delay:~Bs ~n", [NewReq#request.err_count,
+    lager:info("[Handler] [Requed#~B] (~s)~s -> delay:~Bs ", [NewReq#request.err_count,
         NewReq#request.method, NewReq#request.relative_url, trunc(Delay / 1000000)]),
     {retrying, NewReq}.
 
@@ -89,7 +89,7 @@ declare_dead(#request{method = Method, relative_url = RelativeUrl} = Req, Reason
     ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p\n",
         [Year, Month, Day, Hour, Min, Second, Req]), [append]),
     ok = funl_alert:alert_dead_req({Reason, Method, RelativeUrl}, LogPath, Opts),
-    io:format("[Handler] [~s] (~s)~s, declared dead! You can retreive it from ~s ~n", [Reason,
+    lager:warning("[Handler] [~s] (~s)~s, declared dead! You can retreive it from ~s ", [Reason,
         Method, RelativeUrl, LogPath]),
     {dead, Req#request{state = dead}}.
 

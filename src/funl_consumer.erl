@@ -21,7 +21,7 @@ start_link(Options) ->
 
 init([Options]) ->
     Delay = calculate_delay(Options),
-    io:format("Consumer delay: ~b milisecs~n", [Delay]),
+    lager:info("Consumer delay: ~b milisecs", [Delay]),
     Timer = erlang:send_after(1, self(), consume),
     {ok, #state{options = Options, timer = Timer, delay = Delay}}.
 
@@ -29,7 +29,7 @@ handle_info(consume, #state{timer = Timer, delay = Delay, options = Options} = S
     erlang:cancel_timer(Timer),
     case funl_queue:deq() of
         [] ->
-            io:format("[Consumer] Queue empty~n"),
+            lager:info("[Consumer] Queue empty"),
             ok;
         Req ->
             funl_request_handler:send(Req, Options)

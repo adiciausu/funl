@@ -7,7 +7,7 @@
 %% API.
 start(_Type, _Args) ->
     Options = funl_options_factory:create_from_file("conf.yml"),
-    io:format("Loaded config: ~p~n", [Options]),
+    lager:info("Loaded config: ~p", [Options]),
     
     start_http_listener(),
     funl_sup:start_link(Options).

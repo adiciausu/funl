@@ -26,7 +26,7 @@ start_link(Options) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [Options], []).
 
 init([Options]) ->
-    io:format("Balance round at ~B seconds~n", [?delay]),
+    lager:info("Balance round at ~B seconds", [?delay]),
     Timer = erlang:send_after(1, self(), balance),
     {ok, #state{options = Options, timer = Timer, delay = 1000 * ?delay}}.
 
@@ -35,7 +35,7 @@ handle_info(balance, #state{timer = Timer, delay = Delay, options = Options} = S
     funl_alert:check_max_queued_req(Options),
     Size = funl_mnesia_queue:size() * erlang:system_info(wordsize),
     Free = ?maxMemory - Size,
-    io:format("[Balancer] Memory buffer free size ~f Mb ~n", [Free / 1000000]),
+    lager:info("[Balancer] Memory buffer free size ~f Mb ", [Free / 1000000]),
     ok = do_balance(Free),
     NewTimer = erlang:send_after(Delay, self(), balance),
     {noreply, State#state{timer = NewTimer}};
@@ -56,19 +56,19 @@ code_change(_OldVsn, State, _Extra) ->
 do_balance(Available) when Available < 0 ->
     BatchSize = round(funl_mnesia_queue:count() / ?BatchPercent),
     Items = funl_mnesia_queue:rev_deq(BatchSize),
-    io:format("Queued ~B items to disk~n", [length(Items)]),
+    lager:info("Queued ~B items to disk", [length(Items)]),
     ok = funl_disk_queue:enq(Items);
 do_balance(Available) when Available > ?maxMemory * ?BatchPercent / 100 ->
     QueueItems = funl_disk_queue:deq(),
     case length(QueueItems) > 0 of
         true ->
             memory_bulk_enq(QueueItems),
-            io:format("Dequed ~B items from disk~n", [length(QueueItems)]);
+            lager:info("Dequed ~B items from disk", [length(QueueItems)]);
         false -> ok
     end,
     ok;
 do_balance(_Count) ->
-    io:format("Nothing to balance~n"),
+    lager:info("Nothing to balance"),
     ok.
 
 memory_bulk_enq([]) ->
