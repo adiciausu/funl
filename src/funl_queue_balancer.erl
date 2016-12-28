@@ -3,9 +3,9 @@
 -include("../include/funl_request.hrl").
 -include("../include/funl_options.hrl").
 -behaviour(gen_server).
--define(BatchPercent, 10). %move 10% of requests to disk
--define(delay, 10). %seconds
--define(maxMemory, 1000000000). %bytes
+-define(batchSize, 10000). %requests
+-define(delay, 1). %run every 1 seconds
+-define(maxMemory, 10000000). %bytes
 
 %% API
 -export([start_link/1]).
@@ -34,9 +34,12 @@ handle_info(balance, #state{timer = Timer, delay = Delay, options = Options} = S
     erlang:cancel_timer(Timer),
     funl_alert:check_max_queued_req(Options),
     Size = funl_mnesia_queue:size() * erlang:system_info(wordsize),
+    Count = funl_mnesia_queue:count(),
+    AvgReqSize = Size / (1 + Count),
     Free = ?maxMemory - Size,
-    lager:info("[Balancer] Memory buffer free size ~f Mb ", [Free / 1000000]),
-    ok = do_balance(Free),
+    ToBalance = trunc(Free / AvgReqSize),
+    lager:info("[Balancer] Memory buffer free size ~f Mb, (aprox): ~b requests ", [Free / 1000000, ToBalance]),
+    ok = do_balance(ToBalance),
     NewTimer = erlang:send_after(Delay, self(), balance),
     {noreply, State#state{timer = NewTimer}};
 handle_info(_Info, State) ->
@@ -53,12 +56,11 @@ terminate(_Reason, _State) ->
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
-do_balance(Available) when Available < 0 ->
-    BatchSize = round(funl_mnesia_queue:count() / ?BatchPercent),
-    Items = funl_mnesia_queue:rev_deq(BatchSize),
+do_balance(Count) when Count < -1 * ?batchSize ->
+    Items = funl_mnesia_queue:rev_deq(min(?batchSize, abs(Count))),
     lager:info("Queued ~B items to disk", [length(Items)]),
     ok = funl_disk_queue:enq(Items);
-do_balance(Available) when Available > ?maxMemory * ?BatchPercent / 100 ->
+do_balance(Count) when Count > ?batchSize ->
     QueueItems = funl_disk_queue:deq(),
     case length(QueueItems) > 0 of
         true ->

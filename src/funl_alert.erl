@@ -11,7 +11,8 @@ check_max_queued_req(#options{alert_queued_requests_max_count = MaxReqCount} = O
                 From: Funl alerts\r\n
                 To: Admin \r\n\r\n
                 Max Queued requests alert threshold (~B) exceded: ~B", [MaxReqCount, Count])),
-        ok = send_email(Body, Options);
+        ok = send_email(Body, Options),
+        lager:warning("[Alert] Max Queued requests alert threshold (~B) exceded: ~B", [MaxReqCount, Count]);
         true -> ok
     end.
 
@@ -19,12 +20,14 @@ alert_dead_req({Reason, Method, RelativeUrl}, LogPath, Options) ->
     Body = unicode:characters_to_binary(io_lib:format("Subject: Dead request!\r\n
                 From: Funl alerts\r\n
                 To: Admin \r\n\r\n
-                (~s)~s, declared dead for reason ~s! You can retreive it from ~s ", [Method, RelativeUrl, Reason, LogPath])),
-    ok = send_email(Body, Options).
+                (~s)~s, declared dead for reason ~s! You can retreive it from ~s", [Method, RelativeUrl, Reason, LogPath])),
+    ok = send_email(Body, Options),
+    lager:warning("[Alert] (~s)~s, declared dead for reason ~s! You can retreive it from ~s",
+        [Method, RelativeUrl, Reason, LogPath]).
 
 
 send_email(_, #options{alert_email_receiver = none}) ->
-    lager:info("Alert sending skipped, no alert email provided");
+    lager:info("[Alert] Mail sending skipped, no alert email provided");
 send_email(Body, #options{alert_email_receiver = AlertEmailReceiver, alert_email_relay = Relay,
     alert_email_username = Username, alert_email_password = Password, alert_email_ssl = Ssl}) ->
     

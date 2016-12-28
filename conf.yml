@@ -3,12 +3,12 @@ max_errors: 5
 delay_factor: 2 #next_delay = pow(delay_factor, current_error_count) + or - 1%
 dead_status_codes: [ "408" ]
 
-default_request_ttl: 1000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
+default_request_ttl: 36000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
 endpoint: http://requestb.in/13k1a101/
 route_strategy:  all_paths_relative_to_enpoint
 backend_max_req: 20 # per second
 
-alert_queued_requests_max_count: 1000
+alert_queued_requests_max_count: 10000000
 alert_dead_request: true # alert for each dead request
 
 #alert_email_receiver: example@gmail.com
