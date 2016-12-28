@@ -14,13 +14,13 @@ send(#request{ttl = unset, received_at = ReceivedAt} = Req, #options{default_req
     case check_ttl(ReceivedAt, Ttl) of
         valid -> do_send(Req, Options, Endpoint);
         expired ->
-            declare_dead(Req, default_ttl_expired)
+            declare_dead(Req, default_ttl_expired, Options)
     end;
 send(#request{ttl = Ttl, received_at = ReceivedAt} = Req, Options, Endpoint) ->
     case check_ttl(ReceivedAt, Ttl) of
         valid -> do_send(Req, Options, Endpoint);
         expired ->
-            declare_dead(Req, specific_ttl_expired)
+            declare_dead(Req, specific_ttl_expired, Options)
     end.
 
 do_send(#request{method = Method, body = Body, headers = Headers} = Req, Options, Endpoint) ->
@@ -49,7 +49,7 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
     NewReq = Req#request{redirect_count = 1 + Req#request.redirect_count, state = redirecting},
     case (lists:keyfind("Location", 1, Head)) of
         false ->
-            requeue(Req, Opts);
+           declare_dead(NewReq, redirect_no_location, Opts);
         {"Location", RedirectUrl} ->
             io:format("[Redirecting#~B] (~s)~s ... ~n ... to ~s ~n",
                 [NewReq#request.redirect_count, NewReq#request.method, NewReq#request.relative_url, RedirectUrl]),
@@ -59,7 +59,7 @@ handle_response({ok, StatusCode, Head, _Body}, Req, Opts) when "301" == StatusCo
 %% http status code error (ex: 503)
 handle_response({ok, StatusCode, _Head, _Body}, Req, #options{dead_status_codes = DeadStatusCodes} = Opts) ->
     case lists:member(StatusCode, DeadStatusCodes) of
-        true-> declare_dead(Req, list_to_atom(StatusCode));
+        true-> declare_dead(Req, list_to_atom(StatusCode), Opts);
         false ->requeue(Req, Opts)
     end;
 %% ibrowse errors
@@ -68,8 +68,8 @@ handle_response({error, Error}, Req, Opts) ->
     requeue(Req, Opts).
 
 
-requeue(#request{err_count = ErrCount} = Req, #options{max_errors = MaxErr}) when ErrCount == MaxErr ->
-    declare_dead(Req, errCount);
+requeue(#request{err_count = ErrCount} = Req, #options{max_errors = MaxErr} = Opts) when ErrCount >= MaxErr ->
+    declare_dead(Req, errCount, Opts);
 requeue(Req, Options) ->
     NewErrCount = Req#request.err_count + 1,
     NewReq = Req#request{err_count = NewErrCount, redirect_count = 0, state = retrying},
@@ -80,7 +80,7 @@ requeue(Req, Options) ->
         NewReq#request.method, NewReq#request.relative_url, trunc(Delay / 1000000)]),
     {retrying, NewReq}.
 
-declare_dead(#request{method = Method, relative_url = RelativeUrl} = Req, Reason) ->
+declare_dead(#request{method = Method, relative_url = RelativeUrl} = Req, Reason, Opts) ->
     {Date, Time} = calendar:local_time(),
     {Year, Month, Day} = Date,
     {Hour, Min, Second} = Time,
@@ -88,6 +88,7 @@ declare_dead(#request{method = Method, relative_url = RelativeUrl} = Req, Reason
     ok = filelib:ensure_dir(LogPath),
     ok = file:write_file(LogPath, io_lib:fwrite("~B-~B-~B ~B:~B:~B ~p\n",
         [Year, Month, Day, Hour, Min, Second, Req]), [append]),
+    ok = funl_alert:alert_dead_req({Reason, Method, RelativeUrl}, LogPath, Opts),
     io:format("[Handler] [~s] (~s)~s, declared dead! You can retreive it from ~s ~n", [Reason,
         Method, RelativeUrl, LogPath]),
     {dead, Req#request{state = dead}}.

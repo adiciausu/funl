@@ -1,18 +1,21 @@
-max_redirects: 10
-max_errors: 25
-delay_factor: 4 #next_delay = pow(delay_factor, current_error_count) + or - 1%
+max_redirects: 15
+max_errors: 5
+delay_factor: 2 #next_delay = pow(delay_factor, current_error_count) + or - 1%
 dead_status_codes: [ "408" ]
 
-default_request_ttl: 1000000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
-endpoint: http://requestb.in/13k1a101
-route_strategy:  all_to_endpoint
-backend_max_req: 1 # per second
+default_request_ttl: 1000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
+endpoint: http://requestb.in/13k1a101/
+route_strategy:  relative_to_endpoint
+backend_max_req: 20 # per second
 
-alert_email_receiver: example@domain.com
-alert_email_relay: smtp.gmail.com
-alert_email_username: example@domain.com
-alert_email_password: notasecret
-alert_email_ssl: true # required for smtp.gmail.com
-alert_queued_requests_max_count: 100000
+alert_queued_requests_max_count: 1000
+alert_dead_request: true # alert for each dead request
+
+#alert_email_receiver: example@gmail.com
+#alert_email_relay: smtp.gmail.com
+#alert_email_username: example@gmail.com
+#alert_email_password: password
+#alert_email_ssl: true # required for smtp.gmail.com
+
 
 
