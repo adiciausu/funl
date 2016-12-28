@@ -5,7 +5,7 @@ dead_status_codes: [ "408" ]
 
 default_request_ttl: 1000 #in seconds;[integer()| none]; none => never expires; overriden by request X-Funl-Ttl header
 endpoint: http://requestb.in/13k1a101/
-route_strategy:  relative_to_endpoint
+route_strategy:  all_paths_relative_to_enpoint
 backend_max_req: 20 # per second
 
 alert_queued_requests_max_count: 1000
