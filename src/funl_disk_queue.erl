@@ -9,7 +9,7 @@ enq(Items) ->
     ok = filelib:ensure_dir(File),
     {ok, BufferIoDevice} = file:open(File, [append]),
     ok = enq(Items, BufferIoDevice),
-    file:close(BufferIoDevice).
+    ok = file:close(BufferIoDevice).
 
 enq([], _) ->
     ok;

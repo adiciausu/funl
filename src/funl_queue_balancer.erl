@@ -3,9 +3,9 @@
 -include("../include/funl_request.hrl").
 -include("../include/funl_options.hrl").
 -behaviour(gen_server).
--define(batchSize, 10000). %requests
+-define(batchSize, 5000). %requests
 -define(delay, 1). %run every 1 seconds
--define(maxMemory, 10000000). %bytes
+-define(maxMemory, 100000000). %bytes
 
 %% API
 -export([start_link/1]).

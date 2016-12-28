@@ -9,11 +9,13 @@ start({mem_and_disk, DiscCopies}) ->
     ok = case mnesia:create_table(queue_item, [
         {disc_copies, DiscCopies},
         {type, ordered_set},
-        {attributes, record_info(fields, queue_item)} ]) of
+        {storage_properties,
+            [{dets, [{auto_save, 5000}]}]},
+        {attributes, record_info(fields, queue_item)}]) of
              {atomic, ok} -> ok;
              {aborted, {already_exists, _Tab}} -> ok
          end,
-        mnesia:wait_for_tables([queue_item], 30000).
+    mnesia:wait_for_tables([queue_item], 30000).
 
 enq(Item, UnlockTime) ->
     QueuedItem = #queue_item{id = funl_uid:generate(UnlockTime), next_iteration = UnlockTime, item = Item},
