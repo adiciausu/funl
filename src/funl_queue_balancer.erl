@@ -38,8 +38,8 @@ handle_info(balance, #state{timer = Timer, delay = Delay, options = Options} = S
     AvgReqSize = Size / (1 + Count),
     Free = ?maxMemory - Size,
     ToBalance = trunc(Free / AvgReqSize),
-    lager:info("[Balancer] Memory buffer used ~f Mb, ~b requests ", [Size/ 1000000, Count]),
-    lager:info("[Balancer] Memory buffer free size ~f Mb, (aprox): ~b requests ", [Free / 1000000, ToBalance]),
+    lager:info("[Balancer] Memory buffer used ~f Mb, ~b requests", [Size/ 1000000, Count]),
+    lager:info("[Balancer] Memory buffer free ~f Mb, ~b requests(aprox)", [Free / 1000000, ToBalance]),
     ok = do_balance(ToBalance),
     NewTimer = erlang:send_after(Delay, self(), balance),
     {noreply, State#state{timer = NewTimer}};
