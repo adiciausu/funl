@@ -14,6 +14,7 @@ create_from_list([{Key, Value} | Rest], Options) ->
     "max_errors" -> Options2 = Options#options{max_errors = Value};
     "max_redirects" -> Options2 = Options#options{max_redirects = Value};
     "endpoint" -> Options2 = Options#options{endpoint = Value};
+    "listen_on_port" -> Options2 = Options#options{listen_on_port = Value};
     "route_strategy" -> Options2 = Options#options{route_strategy = list_to_atom(Value)};
     "delay_factor" -> Options2 = Options#options{delay_factor = Value};
     "backend_max_req" -> Options2 = Options#options{backend_max_req = Value};

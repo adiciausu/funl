@@ -14,6 +14,7 @@
     alert_email_ssl = false ::boolean(),
     
     endpoint = "http://localhost:8081" :: string(),
+    listen_on_port = 80 :: non_neg_integer(),
     backend_max_req = 3 :: non_neg_integer(),
     route_strategy = all_paths_relative_to_enpoint :: all_to_endpoint | all_paths_relative_to_enpoint
 }).
