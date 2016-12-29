@@ -1,13 +1,14 @@
 
 
-### Install
-##### The easy way 
+## Install
+#### The easy way 
 [Download funl] and unarchive:
 ```sh
+$ mkdir funl
 $ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
-$ tar -xfv funl-0.0.1.tar.gz 
+$ tar -xzvf funl-0.0.1.tar.gz -C funl
 ```
-##### From Source
+#### From Source
 Install [erlang] 19 and [rebar3] and then:
 ```sh
 $ git clone https://github.com/adrianciausu/funl.git
@@ -18,7 +19,7 @@ You can find the built app folder here
 ```sh
 $ path-to-parent-folder/funl/_build/rel/funl
 ```
-### Start funl
+## Start funl
 ```sh
 $ path-to-parent-folder/funl/bin/funl start
 ```
