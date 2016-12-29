@@ -1,7 +1,14 @@
+
+
 ### Install
 ##### The easy way 
-Download funl from here
-##### Build from source
+[Download funl] and unarchive:
+
+```sh
+$ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
+$ tar -xfv funl-0.0.1.tar.gz 
+```
+##### From Source
 Install [erlang] 19 and [rebar3] and then:
 ```sh
 $ git clone https://github.com/adrianciausu/funl.git
@@ -19,7 +26,7 @@ $ path-to-parent-folder/funl/bin/funl start
 
 Funl will now listen for http requests and proxy them to your backend endpoint 
 
-#### Config
+##### Config
 The config can be found here:
 ```sh
 $ path-to-funl-parent-folder/funl/conf.yml
@@ -52,6 +59,6 @@ alert_email_ssl: true # required for smtp.gmail.com
 
 [rebar3]: <https://www.rebar3.org/>
 [erlang]: https://www.erlang.org/
-
+[Download funl]: https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz
 
 

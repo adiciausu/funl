@@ -7,6 +7,7 @@ deps
 erl_crash.dump
 ebin
 .concrete/DEV_MODE
+.DS_Store
 
 #rebar / build
 rebar.lock
