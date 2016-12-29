@@ -3,7 +3,6 @@
 ### Install
 ##### The easy way 
 [Download funl] and unarchive:
-
 ```sh
 $ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
 $ tar -xfv funl-0.0.1.tar.gz 
