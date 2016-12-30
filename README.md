@@ -45,7 +45,10 @@ You can find the built app folder here
 ```sh
 $ path-to-parent-folder/funl/_build/rel/funl
 ```
-## Start funl
+# Usage
+
+Just start funl:
+
 ```sh
 $ path-to-parent-folder/funl/bin/funl start
 ```
