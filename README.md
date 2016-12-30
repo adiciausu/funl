@@ -24,7 +24,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
 
 ### Coming up!
 1. Backend health check and failure prevention
-2. Multiple backends (now it can be done using a load balancer like haproxy)
+2. Multiple backends (now it can be done using a load balancer like [HAProxy])
 
     
 # Install (The easy way)
@@ -87,3 +87,4 @@ alert_email_ssl: true # required for smtp.gmail.com
 [erlang]: https://www.erlang.org/
 [Download funl]: https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz
 [benchmark]: http://www.ostinelli.net/a-comparison-between-misultin-mochiweb-cowboy-nodejs-and-tornadoweb/
+[HAProxy]: http://www.haproxy.org/
