@@ -1,5 +1,5 @@
 # What is funl?
-Funl is a high performance async http proxy that can queue the requests it receives and send them to your backend at a rate defined by you, leveling throughput spikes and retring failed requests with exponential backoff.  
+Funl is a high performance async http proxy that can queue the requests it receives, store them on disk and send them to your backend at a rate defined by you, leveling throughput spikes and retring failed requests with exponential backoff.  
 
 # Use cases 
 1. __Collecting big data__
