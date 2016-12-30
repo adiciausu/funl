@@ -1,11 +1,28 @@
-## Main features
+## What is funl?
+Funl is a high performance async http proxy that can queue the requests it receives and send them to the backend at a rate defined by you, leveling throughput spikes and retring failed requests with exponential backoff.  
 
+## Main features
 1. __High throughput__:  
     * Funl uses cowboy to listen for http requests. Take a look at this [benchmark] of cowboy and other popular solutions. (NB: the benchmark was done by a cowboy competitor)
-2. Transient error handling
+2. __Transient error handling__
     * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic.
-3. Low memory footprint
+    * You can tell funl to stop retring a request after a certain amount of time (ttl) or when a maximum error threshold is reached
+    * You can tell funl not to retry a request if certain status codes are encountered in the response ("ex: 404 not found makes no sense to be retried unde normal http rfc
+3. __Low memory footprint__
     * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed.
+    
+## Use cases 
+1. Colecting big data
+   * You can send all the requests to funl and let your system process them at a desired rate
+2. Microservice communication
+   * Make sure your reques is sent to the other microservice, even if you encounter network (or other transient) errors
+3. Payment systems
+   * Make sure you receive ALL payment requests, even if your payment processing system is down
+4. Message(sms, email, push notification etc.) sending
+   * Make sure your message is delivered, even if you encounter errors, but do not send the message if it is too old (ttl expired)
+
+
+
 
 ## Install
 #### The easy way 
