@@ -25,7 +25,6 @@ Funl is a high performance async http proxy that can queue the requests it recei
 ### Coming up!
 1. Backend health check and failure prevention
 2. Multiple backends (now it can be done using a load balancer like [HAProxy])
-
     
 # Install (The easy way)
 [Download funl] and unarchive:
@@ -34,6 +33,7 @@ $ mkdir funl
 $ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
 $ tar -xzvf funl-0.0.1.tar.gz -C funl
 ```
+
 # Install (From Source)
 Install [erlang] 19 and [rebar3] and then:
 ```sh
@@ -45,14 +45,12 @@ You can find the built app folder here
 ```sh
 $ path-to-parent-folder/funl/_build/rel/funl
 ```
+
 # Usage
-
-Just start funl:
-
+Write your backend endpoint in the config and just start funl:
 ```sh
 $ path-to-parent-folder/funl/bin/funl start
 ```
-
 Funl will now listen for http requests and proxy them to your backend endpoint 
 
 #### Config
