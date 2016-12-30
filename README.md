@@ -22,7 +22,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
 3. __Low memory footprint__
     * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed
 
-## Comming up
+## Coming up
     1. Backend health check and failure prevention
     2. Multiple backends (now it can be done using a load balancer like haproxy)
 
