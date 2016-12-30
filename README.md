@@ -2,13 +2,13 @@
 Funl is a high performance async http proxy that can queue the requests it receives and send them to your backend at a rate defined by you, leveling throughput spikes and retring failed requests with exponential backoff.  
 
 # Use cases 
-1. Collecting big data
+1. __Collecting big data__
    * You can send all the requests to funl and let your system process them at a desired rate
-2. Microservice communication
+2. __Microservice communication__
    * Make sure your requests are sent to the other microservice, even if you encounter network (or other transient) errors
-3. Payment systems
+3. __Payment systems__
    * Make sure you receive ALL payment requests, even if your payment processing system is down
-4. Message(sms, email, push notification etc.) sending
+4. __Message(sms, email, push notification etc.) sending__
    * Make sure your message is delivered, even if you encounter errors, but do not send the message if it is too old (ttl expired)
    
 # Main features
