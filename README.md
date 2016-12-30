@@ -24,7 +24,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
 
 ### Coming up!
 1. Backend health check and failure prevention
-2. Multiple backends (now it can be done using a load balancer like [HAProxy])
+2. Native load balancing / advanced request routing (now it can be done using a load balancer like [HAProxy])
     
 # Install (The easy way)
 [Download funl] and unarchive:
