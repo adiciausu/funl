@@ -21,6 +21,11 @@ Funl is a high performance async http proxy that can queue the requests it recei
     * You can tell funl not to retry a request if certain status codes are encountered in the response ("ex: 404 not found makes no sense to be retried under normal http RFC)
 3. __Low memory footprint__
     * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed
+
+## Comming up
+    1. Backend health check and failure prevention
+    2. Multiple backends (now it can be done using a load balancer like haproxy)
+
     
 # Install (The easy way)
 [Download funl] and unarchive:
