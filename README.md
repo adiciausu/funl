@@ -13,8 +13,8 @@ Funl is a high performance async http proxy that can queue the requests it recei
    
 # Main features
 1. __High throughput__:  
-    * Funl uses [Cowboy] to listen for http requests
-    * Take a look at this [benchmark] of Cowboy and other popular solutions like NodeJs or Tornadoweb. (NB: the benchmark was done by a cowboy competitor)
+    * Funl uses [Cowboy] http server to listen for http requests
+    * Take a look at this [benchmark] of Cowboy and other popular solutions like NodeJs or Tornadoweb. (Take note that the benchmark was done by the developer behind Misultin http server)
 2. __Transient error handling__
     * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic
     * You can tell funl to stop retring a request after a certain amount of time (ttl) or when a maximum error threshold is reached
