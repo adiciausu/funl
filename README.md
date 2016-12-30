@@ -3,14 +3,14 @@ Funl is a high performance async http proxy that can queue the requests it recei
 
 ## Main features
 1. __High throughput__:  
-    * Funl uses cowboy to listen for http requests. 
+    * Funl uses cowboy to listen for http requests
     * Take a look at this [benchmark] of cowboy and other popular solutions. (NB: the benchmark was done by a cowboy competitor)
 2. __Transient error handling__
-    * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic.
+    * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic
     * You can tell funl to stop retring a request after a certain amount of time (ttl) or when a maximum error threshold is reached
     * You can tell funl not to retry a request if certain status codes are encountered in the response ("ex: 404 not found makes no sense to be retried unde normal http rfc
 3. __Low memory footprint__
-    * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed.
+    * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed
     
 ## Use cases 
 1. Colecting big data
@@ -22,18 +22,15 @@ Funl is a high performance async http proxy that can queue the requests it recei
 4. Message(sms, email, push notification etc.) sending
    * Make sure your message is delivered, even if you encounter errors, but do not send the message if it is too old (ttl expired)
 
-
-
-
 ## Install
-#### The easy way 
+##### The easy way 
 [Download funl] and unarchive:
 ```sh
 $ mkdir funl
 $ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
 $ tar -xzvf funl-0.0.1.tar.gz -C funl
 ```
-#### From Source
+##### From Source
 Install [erlang] 19 and [rebar3] and then:
 ```sh
 $ git clone https://github.com/adrianciausu/funl.git
@@ -51,7 +48,7 @@ $ path-to-parent-folder/funl/bin/funl start
 
 Funl will now listen for http requests and proxy them to your backend endpoint 
 
-##### Config
+###### Config
 The config can be found here:
 ```sh
 $ path-to-funl-parent-folder/funl/conf.yml
