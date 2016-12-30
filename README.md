@@ -13,7 +13,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
     * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed
     
 ## Use cases 
-1. Colecting big data
+1. Collecting big data
    * You can send all the requests to funl and let your system process them at a desired rate
 2. Microservice communication
    * Make sure your reques is sent to the other microservice, even if you encounter network (or other transient) errors
