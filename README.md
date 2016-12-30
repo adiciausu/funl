@@ -1,4 +1,7 @@
-
+## Main features
+1.High throughput: Funl uses cowboy to listen for http requests. [Here] is a comparison between cowboy and other popular solutions.
+2.Transient error handling: if funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff.
+3. Low memory footprint: Funl will use ~ max 1 Gb of memory for storing requests, dumping the to disk and reloading them in memory when needed.
 
 ## Install
 #### The easy way 
@@ -60,5 +63,5 @@ alert_email_ssl: true # required for smtp.gmail.com
 [rebar3]: <https://www.rebar3.org/>
 [erlang]: https://www.erlang.org/
 [Download funl]: https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz
-
+[Here]: http://www.ostinelli.net/a-comparison-between-misultin-mochiweb-cowboy-nodejs-and-tornadoweb/
 
