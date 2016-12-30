@@ -1,7 +1,17 @@
-## What is funl?
+# What is funl?
 Funl is a high performance async http proxy that can queue the requests it receives and send them to your backend at a rate defined by you, leveling throughput spikes and retring failed requests with exponential backoff.  
 
-## Main features
+# Use cases 
+1. Collecting big data
+   * You can send all the requests to funl and let your system process them at a desired rate
+2. Microservice communication
+   * Make sure your reques is sent to the other microservice, even if you encounter network (or other transient) errors
+3. Payment systems
+   * Make sure you receive ALL payment requests, even if your payment processing system is down
+4. Message(sms, email, push notification etc.) sending
+   * Make sure your message is delivered, even if you encounter errors, but do not send the message if it is too old (ttl expired)
+   
+# Main features
 1. __High throughput__:  
     * Funl uses cowboy to listen for http requests
     * Take a look at this [benchmark] of cowboy and other popular solutions. (NB: the benchmark was done by a cowboy competitor)
@@ -12,25 +22,14 @@ Funl is a high performance async http proxy that can queue the requests it recei
 3. __Low memory footprint__
     * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed
     
-## Use cases 
-1. Collecting big data
-   * You can send all the requests to funl and let your system process them at a desired rate
-2. Microservice communication
-   * Make sure your reques is sent to the other microservice, even if you encounter network (or other transient) errors
-3. Payment systems
-   * Make sure you receive ALL payment requests, even if your payment processing system is down
-4. Message(sms, email, push notification etc.) sending
-   * Make sure your message is delivered, even if you encounter errors, but do not send the message if it is too old (ttl expired)
-
-## Install
-##### The easy way 
+# Install (The easy way)
 [Download funl] and unarchive:
 ```sh
 $ mkdir funl
 $ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
 $ tar -xzvf funl-0.0.1.tar.gz -C funl
 ```
-##### From Source
+# Install (From Source)
 Install [erlang] 19 and [rebar3] and then:
 ```sh
 $ git clone https://github.com/adrianciausu/funl.git
@@ -48,7 +47,7 @@ $ path-to-parent-folder/funl/bin/funl start
 
 Funl will now listen for http requests and proxy them to your backend endpoint 
 
-###### Config
+#### Config
 The config can be found here:
 ```sh
 $ path-to-funl-parent-folder/funl/conf.yml
@@ -83,4 +82,3 @@ alert_email_ssl: true # required for smtp.gmail.com
 [erlang]: https://www.erlang.org/
 [Download funl]: https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz
 [benchmark]: http://www.ostinelli.net/a-comparison-between-misultin-mochiweb-cowboy-nodejs-and-tornadoweb/
-
