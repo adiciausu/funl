@@ -13,8 +13,8 @@ Funl is a high performance async http proxy that can queue the requests it recei
    
 # Main features
 1. __High throughput__:  
-    * Funl uses cowboy to listen for http requests
-    * Take a look at this [benchmark] of cowboy and other popular solutions. (NB: the benchmark was done by a cowboy ipetitor)
+    * Funl uses [Cowboy] to listen for http requests
+    * Take a look at this [benchmark] of cowboy and other popular solutions. (NB: the benchmark was done by a cowboy competitor)
 2. __Transient error handling__
     * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic
     * You can tell funl to stop retring a request after a certain amount of time (ttl) or when a maximum error threshold is reached
@@ -88,3 +88,4 @@ alert_email_ssl: true # required for smtp.gmail.com
 [Download funl]: https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz
 [benchmark]: http://www.ostinelli.net/a-comparison-between-misultin-mochiweb-cowboy-nodejs-and-tornadoweb/
 [HAProxy]: http://www.haproxy.org/
+[Cowboy]: https://github.com/ninenines/cowboy
