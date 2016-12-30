@@ -18,7 +18,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
 2. __Transient error handling__
     * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic
     * You can tell funl to stop retring a request after a certain amount of time (ttl) or when a maximum error threshold is reached
-    * You can tell funl not to retry a request if certain status codes are encountered in the response ("ex: 404 not found makes no sense to be retried unde normal http RFC)
+    * You can tell funl not to retry a request if certain status codes are encountered in the response ("ex: 404 not found makes no sense to be retried under normal http RFC)
 3. __Low memory footprint__
     * Funl will use ~ 1 Gb of memory for storing requests at peak usage, dumping them to disk and reloading them in memory when needed
     
