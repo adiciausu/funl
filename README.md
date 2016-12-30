@@ -1,7 +1,11 @@
 ## Main features
-1.High throughput: Funl uses cowboy to listen for http requests. [Here] is a comparison between cowboy and other popular solutions.
-2.Transient error handling: if funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff.
-3. Low memory footprint: Funl will use ~ max 1 Gb of memory for storing requests, dumping the to disk and reloading them in memory when needed.
+
+1. High throughput: Funl uses cowboy to listen for http requests. 
+    * [Here] is a comparison between cowboy and other popular solutions.
+2. Transient error handling
+    * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff.
+3. Low memory footprint
+    * Funl will use ~ max 1 Gb of memory for storing requests, dumping the to disk and reloading them in memory when needed.
 
 ## Install
 #### The easy way 
