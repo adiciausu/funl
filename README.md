@@ -1,6 +1,6 @@
 ## Main features
 
-1. High throughput:  
+1. __High throughput__:  
     * Funl uses cowboy to listen for http requests. Take a look at this [benchmark] of cowboy and other popular solutions. (NB: the benchmark was done by a cowboy competitor)
 2. Transient error handling
     * If funl encounters an error when sending the request to the backend it will retry sending that request with exponential backoff retry logic.
