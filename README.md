@@ -5,7 +5,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
 1. Collecting big data
    * You can send all the requests to funl and let your system process them at a desired rate
 2. Microservice communication
-   * Make sure your reques is sent to the other microservice, even if you encounter network (or other transient) errors
+   * Make sure your requests are sent to the other microservice, even if you encounter network (or other transient) errors
 3. Payment systems
    * Make sure you receive ALL payment requests, even if your payment processing system is down
 4. Message(sms, email, push notification etc.) sending
