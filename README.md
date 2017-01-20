@@ -26,14 +26,6 @@ Funl is a high performance async http proxy that can queue the requests it recei
 1. Backend health check and failure prevention
 2. Native load balancing / advanced request routing (now it can be done using a load balancer like [HAProxy])
     
-# Install (The easy way)
-[Download funl] and unarchive:
-```sh
-$ mkdir funl
-$ wget https://github.com/adrianciausu/funl/releases/download/0.1.0/funl-0.0.1.tar.gz 
-$ tar -xzvf funl-0.0.1.tar.gz -C funl
-```
-
 # Install (From Source)
 Install [erlang] 19 and [rebar3] and then:
 ```sh
