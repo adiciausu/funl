@@ -29,7 +29,7 @@ Funl is a high performance async http proxy that can queue the requests it recei
 # Install (From Source)
 Install [erlang] 19 and [rebar3] and then:
 ```sh
-$ git clone https://github.com/adrianciausu/funl.git
+$ git clone https://github.com/adiciausu/funl.git
 $ cd funl
 $ rebar3 compile
 ```
