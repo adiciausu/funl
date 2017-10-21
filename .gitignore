@@ -11,6 +11,7 @@ ebin
 
 #rebar / build
 rebar.lock
+rebar3.crashdump
 .rebar
 out/
 _build/
